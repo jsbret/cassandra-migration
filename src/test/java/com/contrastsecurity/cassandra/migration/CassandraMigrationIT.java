@@ -4,10 +4,8 @@ import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfo;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoDumper;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,7 +13,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -40,27 +37,21 @@ public class CassandraMigrationIT extends BaseIT {
 				assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
 				assertThat(info.getScript().contains(".java"), is(true));
 
-				Select select = QueryBuilder.select().column("value").from("test1");
-				select.where(eq("space", "web")).and(eq("key", "facebook"));
-				ResultSet result = getSession().execute(select);
+				ResultSet result = getSession().execute("SELECT value FROM test1 WHERE space = 'web' AND key = 'facebook'");
 				assertThat(result.one().getString("value"), is("facebook.com"));
 			} else if (info.getVersion().equals("3.0")) {
 				assertThat(info.getDescription(), is("Third"));
 				assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
 				assertThat(info.getScript().contains(".java"), is(true));
 
-				Select select = QueryBuilder.select().column("value").from("test1");
-				select.where(eq("space", "web")).and(eq("key", "google"));
-				ResultSet result = getSession().execute(select);
+				ResultSet result = getSession().execute("SELECT value FROM test1 WHERE space = 'web' AND key = 'google'");
 				assertThat(result.one().getString("value"), is("google.com"));
 			} else if (info.getVersion().equals("2.0.0")) {
 				assertThat(info.getDescription(), is("Second"));
 				assertThat(info.getType().name(), is(MigrationType.CQL.name()));
 				assertThat(info.getScript().contains(".cql"), is(true));
 
-				Select select = QueryBuilder.select().column("title").column("message").from("contents");
-				select.where(eq("id", 1));
-				Row row = getSession().execute(select).one();
+				Row row = getSession().execute("SELECT title, message FROM contents WHERE id = 1").one();
 				assertThat(row.getString("title"), is("foo"));
 				assertThat(row.getString("message"), is("bar"));
 			} else if (info.getVersion().equals("1.0.0")) {
@@ -68,9 +59,7 @@ public class CassandraMigrationIT extends BaseIT {
 				assertThat(info.getType().name(), is(MigrationType.CQL.name()));
 				assertThat(info.getScript().contains(".cql"), is(true));
 
-				Select select = QueryBuilder.select().column("value").from("test1");
-				select.where(eq("space", "foo")).and(eq("key", "bar"));
-				ResultSet result = getSession().execute(select);
+				ResultSet result = getSession().execute("SELECT value FROM test1 WHERE space = 'foo' AND key = 'bar'");
 				assertThat(result.one().getString("value"), is("profit!"));
 			}
 
@@ -185,10 +174,10 @@ public class CassandraMigrationIT extends BaseIT {
 	public void runCmdTest() throws IOException, InterruptedException {
 		String shell = "java -jar"
 				+ " -Dcassandra.migration.scripts.locations=filesystem:target/test-classes/migration/integ"
-				+ " -Dcassandra.migration.cluster.contactpoints=" + BaseIT.CASSANDRA_CONTACT_POINT
-				+ " -Dcassandra.migration.cluster.port=" + BaseIT.CASSANDRA_PORT
-				+ " -Dcassandra.migration.cluster.username=" + BaseIT.CASSANDRA_USERNAME
-				+ " -Dcassandra.migration.cluster.password=" + BaseIT.CASSANDRA_PASSWORD
+				+ " -Dcassandra.migration.cluster.contactpoints=" + BaseIT.getContactPoint()
+				+ " -Dcassandra.migration.cluster.port=" + BaseIT.getPort()
+				+ " -Dcassandra.migration.cluster.username=" + BaseIT.getUsername()
+				+ " -Dcassandra.migration.cluster.password=" + BaseIT.getPassword()
 				+ " -Dcassandra.migration.keyspace.name=" + BaseIT.CASSANDRA__KEYSPACE
 				+ " target/*-jar-with-dependencies.jar" + " migrate";
 		ProcessBuilder builder;

@@ -14,13 +14,15 @@ import com.contrastsecurity.cassandra.migration.logging.LogFactory;
 import com.contrastsecurity.cassandra.migration.resolver.CompositeMigrationResolver;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.utils.VersionPrinter;
-import com.datastax.driver.core.Host;
-import com.datastax.driver.core.KeyspaceMetadata;
-import com.datastax.driver.core.Metadata;
-import com.datastax.driver.core.Session;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.CqlSessionBuilder;
+import com.datastax.oss.driver.api.core.metadata.Metadata;
+import com.datastax.oss.driver.api.core.metadata.Node;
 
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class CassandraMigration {
 
@@ -64,9 +66,30 @@ public class CassandraMigration {
         return new CompositeMigrationResolver(classLoader, new ScriptsLocations(configs.getScriptsLocations()), configs.getEncoding());
     }
 
+    public int migrate(CqlSession session) {
+        return execute(new Action<Integer>() {
+
+            @Override
+            public Optional<CqlSession> getCqlSession() {
+                return Optional.ofNullable(session);
+            }
+
+            public Integer execute(CqlSession session) {
+                new Initialize().run(session, keyspace, MigrationVersion.CURRENT.getTable());
+
+                MigrationResolver migrationResolver = createMigrationResolver();
+                SchemaVersionDAO schemaVersionDAO = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
+                Migrate migrate = new Migrate(migrationResolver, configs.getTarget(), schemaVersionDAO, session,
+                        keyspace.getCluster().getUsername(), configs.isAllowOutOfOrder());
+
+                return migrate.run();
+            }
+        });
+    }
+
     public int migrate() {
         return execute(new Action<Integer>() {
-            public Integer execute(Session session) {
+            public Integer execute(CqlSession session) {
                 new Initialize().run(session, keyspace, MigrationVersion.CURRENT.getTable());
 
                 MigrationResolver migrationResolver = createMigrationResolver();
@@ -81,7 +104,7 @@ public class CassandraMigration {
 
     public MigrationInfoService info() {
         return execute(new Action<MigrationInfoService>() {
-            public MigrationInfoService execute(Session session) {
+            public MigrationInfoService execute(CqlSession session) {
                 MigrationResolver migrationResolver = createMigrationResolver();
                 SchemaVersionDAO schemaVersionDAO = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
                 MigrationInfoService migrationInfoService =
@@ -94,36 +117,36 @@ public class CassandraMigration {
     }
 
     public void validate() {
-    	String validationError = execute(new Action<String>() {
-    		@Override
-    		public String execute(Session session) {
-    			MigrationResolver migrationResolver = createMigrationResolver();
-    			SchemaVersionDAO schemaVersionDao = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
-    			Validate validate = new Validate(migrationResolver, schemaVersionDao, configs.getTarget(), true, false);
-    			return validate.run();
-    		}
-    	});
-    
-    	if (validationError != null) {
-    		throw new CassandraMigrationException("Validation failed. " + validationError);
-    	}
+        String validationError = execute(new Action<String>() {
+            @Override
+            public String execute(CqlSession session) {
+                MigrationResolver migrationResolver = createMigrationResolver();
+                SchemaVersionDAO schemaVersionDao = new SchemaVersionDAO(session, keyspace, MigrationVersion.CURRENT.getTable());
+                Validate validate = new Validate(migrationResolver, schemaVersionDao, configs.getTarget(), true, false);
+                return validate.run();
+            }
+        });
+
+        if (validationError != null) {
+            throw new CassandraMigrationException("Validation failed. " + validationError);
+        }
     }
-    
+
     public void baseline() {
         //TODO
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     private String getConnectionInfo(Metadata metadata) {
         StringBuilder sb = new StringBuilder();
         sb.append("Connected to cluster: ");
-        sb.append(metadata.getClusterName());
+        sb.append(metadata.getClusterName().orElse("N/A"));
         sb.append("\n");
-        for (Host host : metadata.getAllHosts()) {
+        for (Node node : metadata.getNodes().values()) {
             sb.append("Data center: ");
-            sb.append(host.getDatacenter());
+            sb.append(node.getDatacenter());
             sb.append("; Host: ");
-            sb.append(host.getAddress());
+            sb.append(node.getEndPoint());
         }
         return sb.toString();
     }
@@ -133,8 +156,7 @@ public class CassandraMigration {
 
         VersionPrinter.printVersion(classLoader);
 
-        com.datastax.driver.core.Cluster cluster = null;
-        Session session = null;
+        CqlSession session = null;
         try {
             if (null == keyspace)
                 throw new IllegalArgumentException("Unable to establish Cassandra session. Keyspace is not configured.");
@@ -142,54 +164,56 @@ public class CassandraMigration {
             if (null == keyspace.getCluster())
                 throw new IllegalArgumentException("Unable to establish Cassandra session. Cluster is not configured.");
 
-            com.datastax.driver.core.Cluster.Builder builder = new com.datastax.driver.core.Cluster.Builder();
-            builder.addContactPoints(keyspace.getCluster().getContactpoints()).withPort(keyspace.getCluster().getPort());
-            if (null != keyspace.getCluster().getUsername() && !keyspace.getCluster().getUsername().trim().isEmpty()) {
-                if (null != keyspace.getCluster().getPassword() && !keyspace.getCluster().getPassword().trim().isEmpty()) {
-                    builder.withCredentials(keyspace.getCluster().getUsername(),
-                            keyspace.getCluster().getPassword());
-                } else {
-                    throw new IllegalArgumentException("Password must be provided with username.");
-                }
-            }
-            cluster = builder.build();
+            session = action.getCqlSession()
+                    .orElseGet(() -> {
+                        CqlSessionBuilder builder = CqlSession.builder();
+                        List<InetSocketAddress> contactPoints = new ArrayList<>();
+                        for (String cp : keyspace.getCluster().getContactpoints()) {
+                            contactPoints.add(new InetSocketAddress(cp, keyspace.getCluster().getPort()));
+                        }
+                        builder.addContactPoints(contactPoints);
+                        builder.withLocalDatacenter("datacenter1"); // Default, should be configurable
 
-            Metadata metadata = cluster.getMetadata();
+                        if (null != keyspace.getCluster().getUsername() && !keyspace.getCluster().getUsername().trim().isEmpty()) {
+                            if (null != keyspace.getCluster().getPassword() && !keyspace.getCluster().getPassword().trim().isEmpty()) {
+                                builder.withAuthCredentials(keyspace.getCluster().getUsername(),
+                                        keyspace.getCluster().getPassword());
+                            } else {
+                                throw new IllegalArgumentException("Password must be provided with username.");
+                            }
+                        }
+                        return builder.build();
+                    });
+
+            Metadata metadata = session.getMetadata();
             LOG.info(getConnectionInfo(metadata));
 
-            session = cluster.newSession();
             if (null == keyspace.getName() || keyspace.getName().trim().length() == 0)
                 throw new IllegalArgumentException("Keyspace not specified.");
-            List<KeyspaceMetadata> keyspaces = metadata.getKeyspaces();
-            boolean keyspaceExists = false;
-            for (KeyspaceMetadata keyspaceMetadata : keyspaces) {
-                if (keyspaceMetadata.getName().equalsIgnoreCase(keyspace.getName()))
-                    keyspaceExists = true;
-            }
-            if (keyspaceExists)
+
+            if (metadata.getKeyspace(keyspace.getName()).isPresent())
                 session.execute("USE " + keyspace.getName());
             else
                 throw new CassandraMigrationException("Keyspace: " + keyspace.getName() + " does not exist.");
 
             result = action.execute(session);
         } finally {
-            if (null != session && !session.isClosed())
+            if (action.getCqlSession().isEmpty() && null != session && !session.isClosed())
                 try {
                     session.close();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     LOG.warn("Error closing Cassandra session");
-                }
-            if (null != cluster && !cluster.isClosed())
-                try {
-                    cluster.close();
-                } catch(Exception e) {
-                    LOG.warn("Error closing Cassandra cluster");
                 }
         }
         return result;
     }
 
     interface Action<T> {
-        T execute(Session session);
+        T execute(CqlSession session);
+
+        default Optional<CqlSession> getCqlSession() {
+            return Optional.empty();
+        }
+
     }
 }

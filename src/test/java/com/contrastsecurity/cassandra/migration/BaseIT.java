@@ -1,41 +1,57 @@
 package com.contrastsecurity.cassandra.migration;
 
 import com.contrastsecurity.cassandra.migration.config.Keyspace;
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.SimpleStatement;
-import com.datastax.driver.core.Statement;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
+import com.datastax.oss.driver.api.core.config.DriverOption;
+import com.datastax.oss.driver.api.core.config.ProgrammaticDriverConfigLoaderBuilder;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.internal.core.config.typesafe.DefaultProgrammaticDriverConfigLoaderBuilder;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.testcontainers.containers.CassandraContainer;
+
+import java.net.InetSocketAddress;
+import java.time.Duration;
 
 public abstract class BaseIT {
     public static final String CASSANDRA__KEYSPACE = "cassandra_migration_test";
-    public static final String CASSANDRA_CONTACT_POINT = "localhost";
-    public static final int CASSANDRA_PORT = 9147;
-    public static final String CASSANDRA_USERNAME = "cassandra";
-    public static final String CASSANDRA_PASSWORD = "cassandra";
+    public static CassandraContainer cassandra = new CassandraContainer("cassandra:4.1");
 
-    private Session session;
+    public static String getContactPoint() {
+        return cassandra.getHost();
+    }
+
+    public static int getPort() {
+        return cassandra.getMappedPort(9042);
+    }
+
+    public static String getUsername() {
+        return cassandra.getUsername();
+    }
+
+    public static String getPassword() {
+        return cassandra.getPassword();
+    }
+
+    private CqlSession session;
 
     @BeforeClass
     public static void beforeSuite() throws Exception {
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra(
-                "cassandra-unit.yaml",
-                "target/embeddedCassandra",
-                200000L);
+        cassandra.start();
     }
 
     @AfterClass
     public static void afterSuite() {
-        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra();
+        cassandra.stop();
     }
 
     @Before
     public void createKeyspace() {
-        Statement statement = new SimpleStatement(
+        SimpleStatement statement = SimpleStatement.newInstance(
                 "CREATE KEYSPACE " + CASSANDRA__KEYSPACE +
                         "  WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
         );
@@ -44,7 +60,7 @@ public abstract class BaseIT {
 
     @After
     public void dropKeyspace() {
-        Statement statement = new SimpleStatement(
+        SimpleStatement statement = SimpleStatement.newInstance(
                 "DROP KEYSPACE " + CASSANDRA__KEYSPACE + ";"
         );
         getSession(getKeyspace()).execute(statement);
@@ -53,26 +69,31 @@ public abstract class BaseIT {
     protected Keyspace getKeyspace() {
         Keyspace ks = new Keyspace();
         ks.setName(CASSANDRA__KEYSPACE);
-        ks.getCluster().setContactpoints(CASSANDRA_CONTACT_POINT);
-        ks.getCluster().setPort(CASSANDRA_PORT);
-        ks.getCluster().setUsername(CASSANDRA_USERNAME);
-        ks.getCluster().setPassword(CASSANDRA_PASSWORD);
+        ks.getCluster().setContactpoints(cassandra.getHost());
+        ks.getCluster().setPort(cassandra.getMappedPort(9042));
+        ks.getCluster().setUsername(cassandra.getUsername());
+        ks.getCluster().setPassword(cassandra.getPassword());
         return ks;
     }
 
-    private Session getSession(Keyspace keyspace) {
+    private CqlSession getSession(Keyspace keyspace) {
         if (session != null && !session.isClosed())
             return session;
 
-        com.datastax.driver.core.Cluster.Builder builder = new com.datastax.driver.core.Cluster.Builder();
-        builder.addContactPoints(CASSANDRA_CONTACT_POINT).withPort(CASSANDRA_PORT);
-        builder.withCredentials(keyspace.getCluster().getUsername(), keyspace.getCluster().getPassword());
-        Cluster cluster = builder.build();
-        session = cluster.connect();
+        DriverConfigLoader driverConfigLoader = new DefaultProgrammaticDriverConfigLoaderBuilder()
+                .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(10))
+                .build();
+
+        session = CqlSession.builder()
+                .addContactPoint(new InetSocketAddress(cassandra.getHost(), cassandra.getMappedPort(9042)))
+                .withLocalDatacenter("datacenter1")
+                .withAuthCredentials(keyspace.getCluster().getUsername(), keyspace.getCluster().getPassword())
+                .withConfigLoader(driverConfigLoader)
+                .build();
         return session;
     }
 
-    protected Session getSession() {
+    protected CqlSession getSession() {
         return session;
     }
 }
