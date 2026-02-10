@@ -6,15 +6,15 @@ import com.contrastsecurity.cassandra.migration.info.MigrationInfoDumper;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class CassandraMigrationIT extends BaseIT {
 
@@ -29,42 +29,42 @@ public class CassandraMigrationIT extends BaseIT {
 		MigrationInfoService infoService = cm.info();
 		System.out.println("Initial migration");
 		System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
-		assertThat(infoService.all().length, is(4));
+		assertThat(infoService.all()).hasSize(4);
 		for (MigrationInfo info : infoService.all()) {
-			assertThat(info.getVersion().getVersion(), anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1")));
+			assertThat(info.getVersion().getVersion()).isIn("1.0.0", "2.0.0", "3.0", "3.0.1");
 			if (info.getVersion().equals("3.0.1")) {
-				assertThat(info.getDescription(), is("Three point zero one"));
-				assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
-				assertThat(info.getScript().contains(".java"), is(true));
+				assertThat(info.getDescription()).isEqualTo("Three point zero one");
+				assertThat(info.getType().name()).isEqualTo(MigrationType.JAVA_DRIVER.name());
+				assertThat(info.getScript()).contains(".java");
 
 				ResultSet result = getSession().execute("SELECT value FROM test1 WHERE space = 'web' AND key = 'facebook'");
-				assertThat(result.one().getString("value"), is("facebook.com"));
+				assertThat(result.one().getString("value")).isEqualTo("facebook.com");
 			} else if (info.getVersion().equals("3.0")) {
-				assertThat(info.getDescription(), is("Third"));
-				assertThat(info.getType().name(), is(MigrationType.JAVA_DRIVER.name()));
-				assertThat(info.getScript().contains(".java"), is(true));
+				assertThat(info.getDescription()).isEqualTo("Third");
+				assertThat(info.getType().name()).isEqualTo(MigrationType.JAVA_DRIVER.name());
+				assertThat(info.getScript()).contains(".java");
 
 				ResultSet result = getSession().execute("SELECT value FROM test1 WHERE space = 'web' AND key = 'google'");
-				assertThat(result.one().getString("value"), is("google.com"));
+				assertThat(result.one().getString("value")).isEqualTo("google.com");
 			} else if (info.getVersion().equals("2.0.0")) {
-				assertThat(info.getDescription(), is("Second"));
-				assertThat(info.getType().name(), is(MigrationType.CQL.name()));
-				assertThat(info.getScript().contains(".cql"), is(true));
+				assertThat(info.getDescription()).isEqualTo("Second");
+				assertThat(info.getType().name()).isEqualTo(MigrationType.CQL.name());
+				assertThat(info.getScript()).contains(".cql");
 
 				Row row = getSession().execute("SELECT title, message FROM contents WHERE id = 1").one();
-				assertThat(row.getString("title"), is("foo"));
-				assertThat(row.getString("message"), is("bar"));
+				assertThat(row.getString("title")).isEqualTo("foo");
+				assertThat(row.getString("message")).isEqualTo("bar");
 			} else if (info.getVersion().equals("1.0.0")) {
-				assertThat(info.getDescription(), is("First"));
-				assertThat(info.getType().name(), is(MigrationType.CQL.name()));
-				assertThat(info.getScript().contains(".cql"), is(true));
+				assertThat(info.getDescription()).isEqualTo("First");
+				assertThat(info.getType().name()).isEqualTo(MigrationType.CQL.name());
+				assertThat(info.getScript()).contains(".cql");
 
 				ResultSet result = getSession().execute("SELECT value FROM test1 WHERE space = 'foo' AND key = 'bar'");
-				assertThat(result.one().getString("value"), is("profit!"));
+				assertThat(result.one().getString("value")).isEqualTo("profit!");
 			}
 
-			assertThat(info.getState().isApplied(), is(true));
-			assertThat(info.getInstalledOn(), notNullValue());
+			assertThat(info.getState().isApplied()).isTrue();
+			assertThat(info.getInstalledOn()).isNotNull();
 		}
 
 		// test out of order when out of order is not allowed
@@ -77,16 +77,16 @@ public class CassandraMigrationIT extends BaseIT {
 		infoService = cm.info();
 		System.out.println("Out of order migration with out-of-order ignored");
 		System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
-		assertThat(infoService.all().length, is(5));
+		assertThat(infoService.all()).hasSize(5);
 		for (MigrationInfo info : infoService.all()) {
-			assertThat(info.getVersion().getVersion(),
-					anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1"), is("1.1.1")));
+			assertThat(info.getVersion().getVersion())
+					.isIn("1.0.0", "2.0.0", "3.0", "3.0.1", "1.1.1");
 			if (info.getVersion().equals("1.1.1")) {
-				assertThat(info.getDescription(), is("Late arrival"));
-				assertThat(info.getType().name(), is(MigrationType.CQL.name()));
-				assertThat(info.getScript().contains(".cql"), is(true));
-				assertThat(info.getState().isApplied(), is(false));
-				assertThat(info.getInstalledOn(), nullValue());
+				assertThat(info.getDescription()).isEqualTo("Late arrival");
+				assertThat(info.getType().name()).isEqualTo(MigrationType.CQL.name());
+				assertThat(info.getScript()).contains(".cql");
+				assertThat(info.getState().isApplied()).isFalse();
+				assertThat(info.getInstalledOn()).isNull();
 			}
 		}
 
@@ -101,16 +101,16 @@ public class CassandraMigrationIT extends BaseIT {
 		infoService = cm.info();
 		System.out.println("Out of order migration with out-of-order allowed");
 		System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
-		assertThat(infoService.all().length, is(6));
+		assertThat(infoService.all()).hasSize(6);
 		for (MigrationInfo info : infoService.all()) {
-			assertThat(info.getVersion().getVersion(),
-					anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1"), is("1.1.1"), is("1.1.2")));
+			assertThat(info.getVersion().getVersion())
+					.isIn("1.0.0", "2.0.0", "3.0", "3.0.1", "1.1.1", "1.1.2");
 			if (info.getVersion().equals("1.1.2")) {
-				assertThat(info.getDescription(), is("Late arrival2"));
-				assertThat(info.getType().name(), is(MigrationType.CQL.name()));
-				assertThat(info.getScript().contains(".cql"), is(true));
-				assertThat(info.getState().isApplied(), is(true));
-				assertThat(info.getInstalledOn(), notNullValue());
+				assertThat(info.getDescription()).isEqualTo("Late arrival2");
+				assertThat(info.getType().name()).isEqualTo(MigrationType.CQL.name());
+				assertThat(info.getScript()).contains(".cql");
+				assertThat(info.getState().isApplied()).isTrue();
+				assertThat(info.getInstalledOn()).isNotNull();
 			}
 		}
 
@@ -125,16 +125,16 @@ public class CassandraMigrationIT extends BaseIT {
 		infoService = cm.info();
 		System.out.println("Out of order migration with out-of-order allowed");
 		System.out.println(MigrationInfoDumper.dumpToAsciiTable(infoService.all()));
-		assertThat(infoService.all().length, is(7));
+		assertThat(infoService.all()).hasSize(7);
 		for (MigrationInfo info : infoService.all()) {
-			assertThat(info.getVersion().getVersion(),
-					anyOf(is("1.0.0"), is("2.0.0"), is("3.0"), is("3.0.1"), is("1.1.1"), is("1.1.2"), is("1.1.3")));
+			assertThat(info.getVersion().getVersion())
+					.isIn("1.0.0", "2.0.0", "3.0", "3.0.1", "1.1.1", "1.1.2", "1.1.3");
 			if (info.getVersion().equals("1.1.3")) {
-				assertThat(info.getDescription(), is("Late arrival3"));
-				assertThat(info.getType().name(), is(MigrationType.CQL.name()));
-				assertThat(info.getScript().contains(".cql"), is(true));
-				assertThat(info.getState().isApplied(), is(true));
-				assertThat(info.getInstalledOn(), notNullValue());
+				assertThat(info.getDescription()).isEqualTo("Late arrival3");
+				assertThat(info.getType().name()).isEqualTo(MigrationType.CQL.name());
+				assertThat(info.getScript()).contains(".cql");
+				assertThat(info.getState().isApplied()).isTrue();
+				assertThat(info.getInstalledOn()).isNotNull();
 			}
 		}
 	}
@@ -150,7 +150,7 @@ public class CassandraMigrationIT extends BaseIT {
 
 		MigrationInfoService infoService = cm.info();
 		String validationError = infoService.validate();
-		Assert.assertNull(validationError);
+		assertThat(validationError).isNull();
 
 		cm = new CassandraMigration();
 		cm.getConfigs().setScriptsLocations(scriptsLocations);
@@ -162,7 +162,7 @@ public class CassandraMigrationIT extends BaseIT {
 		cm.setKeyspace(getKeyspace());
 		try {
 			cm.validate();
-			Assert.fail("The expected CassandraMigrationException was not raised");
+			fail("The expected CassandraMigrationException was not raised");
 		} catch (CassandraMigrationException e) {
 		}
 	}
@@ -194,7 +194,7 @@ public class CassandraMigrationIT extends BaseIT {
 		while (!runCmdTestCompleted)
 			Thread.sleep(1000L);
 
-		assertThat(runCmdTestSuccess, is(true));
+		assertThat(runCmdTestSuccess).isTrue();
 	}
 
 	private static void watch(final Process process) {

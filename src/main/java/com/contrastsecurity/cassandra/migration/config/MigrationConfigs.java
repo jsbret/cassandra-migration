@@ -10,8 +10,8 @@ public class MigrationConfigs {
         ALLOW_OUTOFORDER("cassandra.migration.scripts.allowoutoforder", "Allow out of order migration"),
         TARGET_VERSION("cassandra.migration.version.target", "The target version. Migrations with a higher version number will be ignored.");
 
-        private String name;
-        private String description;
+        private final String name;
+        private final String description;
 
         MigrationProperty(String name, String description) {
             this.name = name;
@@ -29,20 +29,20 @@ public class MigrationConfigs {
 
     public MigrationConfigs() {
         String scriptsEncodingP = System.getProperty(MigrationProperty.SCRIPTS_ENCODING.getName());
-        if (null != scriptsEncodingP && scriptsEncodingP.trim().length() != 0)
+        if (null != scriptsEncodingP && !scriptsEncodingP.trim().isEmpty())
             this.encoding = scriptsEncodingP;
 
         String targetVersionP = System.getProperty(MigrationProperty.TARGET_VERSION.getName());
-        if (null != targetVersionP && targetVersionP.trim().length() != 0)
+        if (null != targetVersionP && !targetVersionP.trim().isEmpty())
             setTargetAsString(targetVersionP);
 
         String locationsProp = System.getProperty(MigrationProperty.SCRIPTS_LOCATIONS.getName());
-        if (locationsProp != null && locationsProp.trim().length() != 0) {
+        if (locationsProp != null && !locationsProp.trim().isEmpty()) {
             scriptsLocations = StringUtils.tokenizeToStringArray(locationsProp, ",");
         }
 
         String allowOutOfOrderProp = System.getProperty(MigrationProperty.ALLOW_OUTOFORDER.getName());
-        if(allowOutOfOrderProp != null && allowOutOfOrderProp.trim().length() != 0) {
+        if(allowOutOfOrderProp != null && !allowOutOfOrderProp.trim().isEmpty()) {
             setAllowOutOfOrder(allowOutOfOrderProp);
         }
     }

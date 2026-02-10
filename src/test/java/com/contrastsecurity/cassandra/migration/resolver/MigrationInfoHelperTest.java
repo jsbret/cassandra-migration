@@ -18,9 +18,10 @@ package com.contrastsecurity.cassandra.migration.resolver;
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.utils.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test for MigrationInfoHelper.
@@ -29,9 +30,9 @@ public class MigrationInfoHelperTest {
     /**
      * Tests a schema version that lacks a description.
      */
-    @Test(expected = CassandraMigrationException.class)
+    @Test
     public void extractSchemaVersionNoDescription() {
-        MigrationInfoHelper.extractVersionAndDescription("9_4", "", "__", "");
+        assertThrows(CassandraMigrationException.class, () -> MigrationInfoHelper.extractVersionAndDescription("9_4", "", "__", ""));
     }
 
     @Test
@@ -39,8 +40,8 @@ public class MigrationInfoHelperTest {
         Pair<MigrationVersion, String> info = MigrationInfoHelper.extractVersionAndDescription("V9_4__EmailAxel.cql", "V", "__", ".cql");
         MigrationVersion version = info.getLeft();
         String description = info.getRight();
-        assertEquals("9.4", version.toString());
-        assertEquals("EmailAxel", description);
+        assertThat(version.toString()).isEqualTo("9.4");
+        assertThat(description).isEqualTo("EmailAxel");
     }
 
     @Test
@@ -48,8 +49,8 @@ public class MigrationInfoHelperTest {
         Pair<MigrationVersion, String> info = MigrationInfoHelper.extractVersionAndDescription("V9_4-EmailAxel.cql", "V", "-", ".cql");
         MigrationVersion version = info.getLeft();
         String description = info.getRight();
-        assertEquals("9.4", version.toString());
-        assertEquals("EmailAxel", description);
+        assertThat(version.toString()).isEqualTo("9.4");
+        assertThat(description).isEqualTo("EmailAxel");
     }
 
     /**
@@ -60,8 +61,8 @@ public class MigrationInfoHelperTest {
         Pair<MigrationVersion, String> info = MigrationInfoHelper.extractVersionAndDescription("9_4__EmailAxel", "", "__", "");
         MigrationVersion version = info.getLeft();
         String description = info.getRight();
-        assertEquals("9.4", version.toString());
-        assertEquals("EmailAxel", description);
+        assertThat(version.toString()).isEqualTo("9.4");
+        assertThat(description).isEqualTo("EmailAxel");
     }
 
     /**
@@ -72,8 +73,8 @@ public class MigrationInfoHelperTest {
         Pair<MigrationVersion, String> info = MigrationInfoHelper.extractVersionAndDescription("9_4__Big_jump", "", "__", "");
         MigrationVersion version = info.getLeft();
         String description = info.getRight();
-        assertEquals("9.4", version.toString());
-        assertEquals("Big jump", description);
+        assertThat(version.toString()).isEqualTo("9.4");
+        assertThat(description).isEqualTo("Big jump");
     }
 
     /**
@@ -84,18 +85,18 @@ public class MigrationInfoHelperTest {
         Pair<MigrationVersion, String> info = MigrationInfoHelper.extractVersionAndDescription("009_4__EmailAxel", "", "__", "");
         MigrationVersion version = info.getLeft();
         String description = info.getRight();
-        assertEquals("009.4", version.toString());
-        assertEquals("EmailAxel", description);
+        assertThat(version.toString()).isEqualTo("009.4");
+        assertThat(description).isEqualTo("EmailAxel");
     }
 
-    @Test(expected = CassandraMigrationException.class)
+    @Test
     public void extractSchemaVersionWithLeadingUnderscore() {
-        MigrationInfoHelper.extractVersionAndDescription("_8_0__Description", "", "__", "");
+        assertThrows(CassandraMigrationException.class, () -> MigrationInfoHelper.extractVersionAndDescription("_8_0__Description", "", "__", ""));
     }
 
-    @Test(expected = CassandraMigrationException.class)
+    @Test
     public void extractSchemaVersionWithLeadingUnderscoreAndPrefix() {
-        MigrationInfoHelper.extractVersionAndDescription("V_8_0__Description.cql", "V", "__", ".cql");
+        assertThrows(CassandraMigrationException.class, () -> MigrationInfoHelper.extractVersionAndDescription("V_8_0__Description.cql", "V", "__", ".cql"));
     }
 
     @Test
@@ -103,7 +104,7 @@ public class MigrationInfoHelperTest {
         Pair<MigrationVersion, String> info = MigrationInfoHelper.extractVersionAndDescription("V_8_0__Description.cql", "V_", "__", ".cql");
         MigrationVersion version = info.getLeft();
         String description = info.getRight();
-        assertEquals("8.0", version.toString());
-        assertEquals("Description", description);
+        assertThat(version.toString()).isEqualTo("8.0");
+        assertThat(description).isEqualTo("Description");
     }
 }

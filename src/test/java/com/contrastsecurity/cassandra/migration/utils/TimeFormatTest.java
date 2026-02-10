@@ -15,9 +15,9 @@
  */
 package com.contrastsecurity.cassandra.migration.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Small test for TimeFormat
@@ -25,13 +25,13 @@ import static org.junit.Assert.assertEquals;
 public class TimeFormatTest {
     @Test
     public void format() {
-        assertEquals("00:00.001s", TimeFormat.format(1));
-        assertEquals("00:00.012s", TimeFormat.format(12));
-        assertEquals("00:00.123s", TimeFormat.format(123));
-        assertEquals("00:01.234s", TimeFormat.format(1234));
-        assertEquals("00:12.345s", TimeFormat.format(12345));
-        assertEquals("01:23.456s", TimeFormat.format(60000 + 23456));
-        assertEquals("12:34.567s", TimeFormat.format((60000 * 12) + 34567));
-        assertEquals("123:45.678s", TimeFormat.format((60000 * 123) + 45678));
+        assertThat(TimeFormat.format(1)).isEqualTo("00:00.001s");
+        assertThat(TimeFormat.format(12)).isEqualTo("00:00.012s");
+        assertThat(TimeFormat.format(123)).isEqualTo("00:00.123s");
+        assertThat(TimeFormat.format(1234)).isEqualTo("00:01.234s");
+        assertThat(TimeFormat.format(12345)).isEqualTo("00:12.345s");
+        assertThat(TimeFormat.format(60000 + 23456)).isEqualTo("01:23.456s");
+        assertThat(TimeFormat.format((60000 * 12) + 34567)).isEqualTo("12:34.567s");
+        assertThat(TimeFormat.format((60000 * 123) + 45678)).isEqualTo("123:45.678s");
     }
 }

@@ -15,10 +15,9 @@
  */
 package com.contrastsecurity.cassandra.migration.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test for ClassUtils.
@@ -26,11 +25,11 @@ import static org.junit.Assert.assertTrue;
 public class ClassUtilsTest {
     @Test
     public void isPresent() {
-        assertTrue(ClassUtils.isPresent("com.contrastsecurity.cassandra.migration.CassandraMigration", Thread.currentThread().getContextClassLoader()));
+        assertThat(ClassUtils.isPresent("com.contrastsecurity.cassandra.migration.CassandraMigration", Thread.currentThread().getContextClassLoader())).isTrue();
     }
 
     @Test
     public void isPresentNot() {
-        assertFalse(ClassUtils.isPresent("com.example.FakeClass", Thread.currentThread().getContextClassLoader()));
+        assertThat(ClassUtils.isPresent("com.example.FakeClass", Thread.currentThread().getContextClassLoader())).isFalse();
     }
 }

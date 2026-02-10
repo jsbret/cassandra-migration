@@ -1,10 +1,8 @@
 package com.contrastsecurity.cassandra.migration;
 
 import com.contrastsecurity.cassandra.migration.config.Keyspace;
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
-import com.contrastsecurity.cassandra.migration.logging.console.ConsoleLog;
-import com.contrastsecurity.cassandra.migration.logging.console.ConsoleLogCreator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,15 +22,14 @@ public class CommandLine {
 	/**
 	 * logging support
 	 */
-	private static Log LOG;
+	private static Logger LOG;
 
 	/**
 	 * @param args
 	 *            command line arguments
 	 */
 	public static void main(String[] args) {
-		ConsoleLog.Level logLevel = getLogLevel(args);
-		initLogging(logLevel);
+		initLogging();
 
 		List<String> operations = determineOperations(args);
 		if (operations.isEmpty()) {
@@ -64,21 +61,8 @@ public class CommandLine {
 		return operations;
 	}
 
-	static void initLogging(ConsoleLog.Level level) {
-		LogFactory.setLogCreator(new ConsoleLogCreator(level));
-		LOG = LogFactory.getLog(CommandLine.class);
-	}
-
-	private static ConsoleLog.Level getLogLevel(String[] args) {
-		for (String arg : args) {
-			if ("-X".equals(arg)) {
-				return ConsoleLog.Level.DEBUG;
-			}
-			if ("-q".equals(arg)) {
-				return ConsoleLog.Level.WARN;
-			}
-		}
-		return ConsoleLog.Level.INFO;
+	static void initLogging() {
+		LOG = LoggerFactory.getLogger(CommandLine.class);
 	}
 
 	private static void printUsage() {

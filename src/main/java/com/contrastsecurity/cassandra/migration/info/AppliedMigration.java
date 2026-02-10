@@ -36,27 +36,27 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
     /**
      * The target version of this migration.
      */
-    private MigrationVersion version;
+    private final MigrationVersion version;
 
     /**
      * The description of the migration.
      */
-    private String description;
+    private final String description;
 
     /**
      * The type of migration (CQL, JAVA_DRIVER, ...)
      */
-    private MigrationType type;
+    private final MigrationType type;
 
     /**
      * The name of the script to execute for this migration, relative to its classpath location.
      */
-    private String script;
+    private final String script;
 
     /**
      * The checksum of the migration. (Optional)
      */
-    private Integer checksum;
+    private final Integer checksum;
 
     /**
      * The timestamp when this migration was installed.
@@ -66,17 +66,17 @@ public class AppliedMigration implements Comparable<AppliedMigration> {
     /**
      * The user that installed this migration.
      */
-    private String installedBy;
+    private final String installedBy;
 
     /**
      * The execution time (in millis) of this migration.
      */
-    private int executionTime;
+    private final int executionTime;
 
     /**
      * Flag indicating whether the migration was successful or not.
      */
-    private boolean success;
+    private final boolean success;
 
     /**
      * Creates a new applied migration. Only called from the RowMapper.

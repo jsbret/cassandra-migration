@@ -15,15 +15,15 @@
  */
 package com.contrastsecurity.cassandra.migration.utils;
 
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.contrastsecurity.cassandra.migration.utils.scanner.classpath.ClassPathResource;
 
 /**
  * Prints the Cassandra Migration version.
  */
 public class VersionPrinter {
-    private static final Log LOG = LogFactory.getLog(VersionPrinter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(VersionPrinter.class);
     private static boolean printed;
 
     private VersionPrinter() {
@@ -36,6 +36,6 @@ public class VersionPrinter {
         }
         printed = true;
         String version = new ClassPathResource("version.txt", classLoader).loadAsString("UTF-8");
-        LOG.info("Cassandra Migration " + version + " by Contrast Security");
+        LOG.info("Cassandra Migration {} by Contrast Security", version);
     }
 }

@@ -31,12 +31,12 @@ public class ClassPathResource implements Comparable<ClassPathResource>, Resourc
     /**
      * The location of the resource on the classpath.
      */
-    private String location;
+    private final String location;
 
     /**
      * The ClassLoader to use.
      */
-    private ClassLoader classLoader;
+    private final ClassLoader classLoader;
 
     /**
      * Creates a new ClassPathResource.

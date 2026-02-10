@@ -15,9 +15,9 @@
  */
 package com.contrastsecurity.cassandra.migration.utils.scanner.classpath;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for ClassPathResource.
@@ -25,19 +25,17 @@ import static org.junit.Assert.assertEquals;
 public class ClassPathResourceTest {
     @Test
     public void getFilename() throws Exception {
-        assertEquals("Mig777__Test.cql", new ClassPathResource("Mig777__Test.cql", Thread.currentThread().getContextClassLoader()).getFilename());
-        assertEquals("Mig777__Test.cql", new ClassPathResource("folder/Mig777__Test.cql", Thread.currentThread().getContextClassLoader()).getFilename());
+        assertThat(new ClassPathResource("Mig777__Test.cql", Thread.currentThread().getContextClassLoader()).getFilename()).isEqualTo("Mig777__Test.cql");
+        assertThat(new ClassPathResource("folder/Mig777__Test.cql", Thread.currentThread().getContextClassLoader()).getFilename()).isEqualTo("Mig777__Test.cql");
     }
 
     @Test
     public void loadAsStringUtf8WithoutBOM() {
-        assertEquals("SELECT * FROM contents;",
-                new ClassPathResource("com/contrastsecurity/cassandra/migration/utils/scanner/classpath/utf8.nofilter", Thread.currentThread().getContextClassLoader()).loadAsString("UTF-8"));
+        assertThat(new ClassPathResource("com/contrastsecurity/cassandra/migration/utils/scanner/classpath/utf8.nofilter", Thread.currentThread().getContextClassLoader()).loadAsString("UTF-8")).isEqualTo("SELECT * FROM contents;");
     }
 
     @Test
     public void loadAsStringUtf8WithBOM() {
-        assertEquals("SELECT * FROM contents;",
-                new ClassPathResource("com/contrastsecurity/cassandra/migration/utils/scanner/classpath/utf8bom.nofilter", Thread.currentThread().getContextClassLoader()).loadAsString("UTF-8"));
+        assertThat(new ClassPathResource("com/contrastsecurity/cassandra/migration/utils/scanner/classpath/utf8bom.nofilter", Thread.currentThread().getContextClassLoader()).loadAsString("UTF-8")).isEqualTo("SELECT * FROM contents;");
     }
 }

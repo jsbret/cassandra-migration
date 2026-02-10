@@ -15,20 +15,20 @@
  */
 package com.contrastsecurity.cassandra.migration.utils.scanner.filesystem;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FileSystemResourceTest {
     @Test
     public void getFilename() throws Exception {
-        assertEquals("Mig777__Test.cql", new FileSystemResource("Mig777__Test.cql").getFilename());
-        assertEquals("Mig777__Test.cql", new FileSystemResource("folder/Mig777__Test.cql").getFilename());
+        assertThat(new FileSystemResource("Mig777__Test.cql").getFilename()).isEqualTo("Mig777__Test.cql");
+        assertThat(new FileSystemResource("folder/Mig777__Test.cql").getFilename()).isEqualTo("Mig777__Test.cql");
     }
 
     @Test
     public void getPath() throws Exception {
-        assertEquals("Mig777__Test.cql", new FileSystemResource("Mig777__Test.cql").getLocation());
-        assertEquals("folder/Mig777__Test.cql", new FileSystemResource("folder/Mig777__Test.cql").getLocation());
+        assertThat(new FileSystemResource("Mig777__Test.cql").getLocation()).isEqualTo("Mig777__Test.cql");
+        assertThat(new FileSystemResource("folder/Mig777__Test.cql").getLocation()).isEqualTo("folder/Mig777__Test.cql");
     }
 }

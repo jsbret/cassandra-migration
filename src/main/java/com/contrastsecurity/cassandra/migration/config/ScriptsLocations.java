@@ -1,7 +1,7 @@
 package com.contrastsecurity.cassandra.migration.config;
 
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +19,7 @@ import java.util.List;
  * (default: db/migration)
  */
 public class ScriptsLocations {
-    private static final Log LOG = LogFactory.getLog(ScriptsLocations.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ScriptsLocations.class);
 
     private final List<ScriptsLocation> locations = new ArrayList<>();
 
@@ -33,13 +33,13 @@ public class ScriptsLocations {
 
         for (ScriptsLocation normalizedLocation : normalizedLocations) {
             if (locations.contains(normalizedLocation)) {
-                LOG.warn("Discarding duplicate location '" + normalizedLocation + "'");
+                LOG.warn("Discarding duplicate location '{}'", normalizedLocation);
                 continue;
             }
 
             ScriptsLocation parentLocation = getParentLocationIfExists(normalizedLocation, locations);
             if (parentLocation != null) {
-                LOG.warn("Discarding location '" + normalizedLocation + "' as it is a sublocation of '" + parentLocation + "'");
+                LOG.warn("Discarding location '{}' as it is a sublocation of '{}'", normalizedLocation, parentLocation);
                 continue;
             }
 

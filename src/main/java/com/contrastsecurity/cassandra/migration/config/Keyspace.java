@@ -6,8 +6,8 @@ public class Keyspace {
     public enum KeyspaceProperty {
         NAME(PROPERTY_PREFIX + "name", "Name of Cassandra keyspace");
 
-        private String name;
-        private String description;
+        private final String name;
+        private final String description;
 
         KeyspaceProperty(String name, String description) {
             this.name = name;
@@ -29,7 +29,7 @@ public class Keyspace {
     public Keyspace() {
         cluster = new Cluster();
         String keyspaceP = System.getProperty(KeyspaceProperty.NAME.getName());
-        if (null != keyspaceP && keyspaceP.trim().length() != 0)
+        if (null != keyspaceP && !keyspaceP.trim().isEmpty())
             this.name = keyspaceP;
     }
 

@@ -18,14 +18,13 @@ package com.contrastsecurity.cassandra.migration.info;
 import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,9 +40,9 @@ public class MigrationInfoServiceTest {
                         createSchemaVersionDAO(), MigrationVersion.LATEST, false, true);
         migrationInfoService.refresh();
 
-        assertNull(migrationInfoService.current());
-        assertEquals(2, migrationInfoService.all().length);
-        assertEquals(2, migrationInfoService.pending().length);
+        assertThat(migrationInfoService.current()).isNull();
+        assertThat(migrationInfoService.all().length).isEqualTo(2);
+        assertThat(migrationInfoService.pending().length).isEqualTo(2);
     }
 
     @Test
@@ -55,9 +54,9 @@ public class MigrationInfoServiceTest {
                         MigrationVersion.LATEST, false, true);
         migrationInfoService.refresh();
 
-        assertEquals("2", migrationInfoService.current().getVersion().toString());
-        assertEquals(2, migrationInfoService.all().length);
-        assertEquals(0, migrationInfoService.pending().length);
+        assertThat(migrationInfoService.current().getVersion().toString()).isEqualTo("2");
+        assertThat(migrationInfoService.all().length).isEqualTo(2);
+        assertThat(migrationInfoService.pending().length).isEqualTo(0);
     }
 
     @Test
@@ -69,10 +68,10 @@ public class MigrationInfoServiceTest {
                         MigrationVersion.LATEST, false, true);
         migrationInfoService.refresh();
 
-        assertEquals("1", migrationInfoService.current().getVersion().toString());
-        assertEquals("xyz", migrationInfoService.current().getDescription());
-        assertEquals(1, migrationInfoService.all().length);
-        assertEquals(0, migrationInfoService.pending().length);
+        assertThat(migrationInfoService.current().getVersion().toString()).isEqualTo("1");
+        assertThat(migrationInfoService.current().getDescription()).isEqualTo("xyz");
+        assertThat(migrationInfoService.all().length).isEqualTo(1);
+        assertThat(migrationInfoService.pending().length).isEqualTo(0);
     }
 
     @Test
@@ -84,9 +83,9 @@ public class MigrationInfoServiceTest {
                         MigrationVersion.LATEST, false, true);
         migrationInfoService.refresh();
 
-        assertEquals("1", migrationInfoService.current().getVersion().toString());
-        assertEquals(2, migrationInfoService.all().length);
-        assertEquals(1, migrationInfoService.pending().length);
+        assertThat(migrationInfoService.current().getVersion().toString()).isEqualTo("1");
+        assertThat(migrationInfoService.all().length).isEqualTo(2);
+        assertThat(migrationInfoService.pending().length).isEqualTo(1);
     }
 
     @Test
@@ -98,10 +97,10 @@ public class MigrationInfoServiceTest {
                         MigrationVersion.LATEST, false, true);
         migrationInfoService.refresh();
 
-        assertEquals("2", migrationInfoService.current().getVersion().toString());
-        assertEquals(MigrationState.IGNORED, migrationInfoService.all()[0].getState());
-        assertEquals(2, migrationInfoService.all().length);
-        assertEquals(0, migrationInfoService.pending().length);
+        assertThat(migrationInfoService.current().getVersion().toString()).isEqualTo("2");
+        assertThat(migrationInfoService.all()[0].getState()).isEqualTo(MigrationState.IGNORED);
+        assertThat(migrationInfoService.all().length).isEqualTo(2);
+        assertThat(migrationInfoService.pending().length).isEqualTo(0);
     }
 
     @Test
@@ -113,11 +112,11 @@ public class MigrationInfoServiceTest {
                         MigrationVersion.LATEST, false, true);
         migrationInfoService.refresh();
 
-        assertEquals("2", migrationInfoService.current().getVersion().toString());
-        assertEquals(MigrationState.FUTURE_SUCCESS, migrationInfoService.current().getState());
-        assertEquals(MigrationState.FUTURE_SUCCESS, migrationInfoService.future()[0].getState());
-        assertEquals(2, migrationInfoService.all().length);
-        assertEquals(0, migrationInfoService.pending().length);
+        assertThat(migrationInfoService.current().getVersion().toString()).isEqualTo("2");
+        assertThat(migrationInfoService.current().getState()).isEqualTo(MigrationState.FUTURE_SUCCESS);
+        assertThat(migrationInfoService.future()[0].getState()).isEqualTo(MigrationState.FUTURE_SUCCESS);
+        assertThat(migrationInfoService.all().length).isEqualTo(2);
+        assertThat(migrationInfoService.pending().length).isEqualTo(0);
     }
 
     @Test
@@ -129,10 +128,10 @@ public class MigrationInfoServiceTest {
                         MigrationVersion.LATEST, false, true);
         migrationInfoService.refresh();
 
-        assertEquals("2", migrationInfoService.current().getVersion().toString());
-        assertEquals(MigrationState.BELOW_BASELINE, migrationInfoService.all()[0].getState());
-        assertEquals(2, migrationInfoService.all().length);
-        assertEquals(0, migrationInfoService.pending().length);
+        assertThat(migrationInfoService.current().getVersion().toString()).isEqualTo("2");
+        assertThat(migrationInfoService.all()[0].getState()).isEqualTo(MigrationState.BELOW_BASELINE);
+        assertThat(migrationInfoService.all().length).isEqualTo(2);
+        assertThat(migrationInfoService.pending().length).isEqualTo(0);
     }
 
     @Test
@@ -144,10 +143,10 @@ public class MigrationInfoServiceTest {
                         MigrationVersion.LATEST, false, true);
         migrationInfoService.refresh();
 
-        assertEquals("2", migrationInfoService.current().getVersion().toString());
-        assertEquals(MigrationState.MISSING_SUCCESS, migrationInfoService.all()[0].getState());
-        assertEquals(2, migrationInfoService.all().length);
-        assertEquals(0, migrationInfoService.pending().length);
+        assertThat(migrationInfoService.current().getVersion().toString()).isEqualTo("2");
+        assertThat(migrationInfoService.all()[0].getState()).isEqualTo(MigrationState.MISSING_SUCCESS);
+        assertThat(migrationInfoService.all().length).isEqualTo(2);
+        assertThat(migrationInfoService.pending().length).isEqualTo(0);
     }
 
     @Test
@@ -159,11 +158,11 @@ public class MigrationInfoServiceTest {
                         MigrationVersion.LATEST, false, true);
         migrationInfoService.refresh();
 
-        assertEquals("1", migrationInfoService.current().getVersion().toString());
-        assertEquals(MigrationState.SUCCESS, migrationInfoService.all()[0].getState());
-        assertEquals(MigrationState.SUCCESS, migrationInfoService.all()[1].getState());
-        assertEquals(2, migrationInfoService.all().length);
-        assertEquals(0, migrationInfoService.pending().length);
+        assertThat(migrationInfoService.current().getVersion().toString()).isEqualTo("1");
+        assertThat(migrationInfoService.all()[0].getState()).isEqualTo(MigrationState.SUCCESS);
+        assertThat(migrationInfoService.all()[1].getState()).isEqualTo(MigrationState.SUCCESS);
+        assertThat(migrationInfoService.all().length).isEqualTo(2);
+        assertThat(migrationInfoService.pending().length).isEqualTo(0);
     }
 
     /**

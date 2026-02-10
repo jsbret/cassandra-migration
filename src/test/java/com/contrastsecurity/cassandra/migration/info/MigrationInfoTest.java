@@ -16,9 +16,9 @@
 package com.contrastsecurity.cassandra.migration.info;
 
 import com.contrastsecurity.cassandra.migration.config.MigrationType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MigrationInfoTest {
     @Test
@@ -40,7 +40,7 @@ public class MigrationInfoTest {
                 new MigrationInfo(resolvedMigration, appliedMigration, new MigrationInfoContext());
         String message = migrationInfo.validate();
 
-        assertTrue(message.contains("123"));
-        assertTrue(message.contains("456"));
+        assertThat(message).contains("123");
+        assertThat(message).contains("456");
     }
 }

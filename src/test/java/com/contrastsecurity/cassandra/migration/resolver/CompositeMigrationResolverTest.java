@@ -20,14 +20,13 @@ import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.config.ScriptsLocations;
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
 import com.contrastsecurity.cassandra.migration.info.ResolvedMigration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test for CompositeMigrationResolver.
@@ -43,10 +42,10 @@ public class CompositeMigrationResolverTest {
         Collection<ResolvedMigration> migrations = migrationResolver.resolveMigrations();
         List<ResolvedMigration> migrationList = new ArrayList<ResolvedMigration>(migrations);
 
-        assertEquals(3, migrations.size());
-        assertEquals("First", migrationList.get(0).getDescription());
-        assertEquals("Late arrival", migrationList.get(1).getDescription());
-        assertEquals("Add contents table", migrationList.get(2).getDescription());
+        assertThat(migrations).hasSize(3);
+        assertThat(migrationList.get(0).getDescription()).isEqualTo("First");
+        assertThat(migrationList.get(1).getDescription()).isEqualTo("Late arrival");
+        assertThat(migrationList.get(2).getDescription()).isEqualTo("Add contents table");
     }
 
     /**
@@ -68,7 +67,7 @@ public class CompositeMigrationResolverTest {
         migrationResolvers.add(migrationResolver);
 
         Collection<ResolvedMigration> migrations = CompositeMigrationResolver.collectMigrations(migrationResolvers);
-        assertEquals(2, migrations.size());
+        assertThat(migrations).hasSize(2);
     }
 
     @Test
@@ -86,8 +85,8 @@ public class CompositeMigrationResolverTest {
         try {
             CompositeMigrationResolver.checkForIncompatibilities(migrations);
         } catch (CassandraMigrationException e) {
-            assertTrue(e.getMessage().contains("target/test-classes/migration/validate/V1__First.cql"));
-            assertTrue(e.getMessage().contains("Migration1"));
+            assertThat(e.getMessage()).contains("target/test-classes/migration/validate/V1__First.cql");
+            assertThat(e.getMessage()).contains("Migration1");
         }
     }
 

@@ -9,8 +9,8 @@ import com.contrastsecurity.cassandra.migration.config.ScriptsLocations;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.contrastsecurity.cassandra.migration.resolver.CompositeMigrationResolver;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.utils.VersionPrinter;
@@ -26,7 +26,7 @@ import java.util.Optional;
 
 public class CassandraMigration {
 
-    private static final Log LOG = LogFactory.getLog(CassandraMigration.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CassandraMigration.class);
 
     private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     private Keyspace keyspace;
@@ -168,7 +168,7 @@ public class CassandraMigration {
                     .orElseGet(() -> {
                         CqlSessionBuilder builder = CqlSession.builder();
                         List<InetSocketAddress> contactPoints = new ArrayList<>();
-                        for (String cp : keyspace.getCluster().getContactpoints()) {
+                        for (String cp : keyspace.getCluster().getContactPoints()) {
                             contactPoints.add(new InetSocketAddress(cp, keyspace.getCluster().getPort()));
                         }
                         builder.addContactPoints(contactPoints);
@@ -186,7 +186,7 @@ public class CassandraMigration {
                     });
 
             Metadata metadata = session.getMetadata();
-            LOG.info(getConnectionInfo(metadata));
+            LOG.info("{}", getConnectionInfo(metadata));
 
             if (null == keyspace.getName() || keyspace.getName().trim().length() == 0)
                 throw new IllegalArgumentException("Keyspace not specified.");

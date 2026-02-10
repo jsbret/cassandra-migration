@@ -4,14 +4,12 @@ import com.contrastsecurity.cassandra.migration.config.Keyspace;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
-import com.datastax.oss.driver.api.core.config.DriverOption;
-import com.datastax.oss.driver.api.core.config.ProgrammaticDriverConfigLoaderBuilder;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.internal.core.config.typesafe.DefaultProgrammaticDriverConfigLoaderBuilder;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.CassandraContainer;
 
 import java.net.InetSocketAddress;
@@ -39,17 +37,17 @@ public abstract class BaseIT {
 
     private CqlSession session;
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeSuite() throws Exception {
         cassandra.start();
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterSuite() {
         cassandra.stop();
     }
 
-    @Before
+    @BeforeEach
     public void createKeyspace() {
         SimpleStatement statement = SimpleStatement.newInstance(
                 "CREATE KEYSPACE " + CASSANDRA__KEYSPACE +
@@ -58,7 +56,7 @@ public abstract class BaseIT {
         getSession(getKeyspace()).execute(statement);
     }
 
-    @After
+    @AfterEach
     public void dropKeyspace() {
         SimpleStatement statement = SimpleStatement.newInstance(
                 "DROP KEYSPACE " + CASSANDRA__KEYSPACE + ";"
@@ -69,7 +67,7 @@ public abstract class BaseIT {
     protected Keyspace getKeyspace() {
         Keyspace ks = new Keyspace();
         ks.setName(CASSANDRA__KEYSPACE);
-        ks.getCluster().setContactpoints(cassandra.getHost());
+        ks.getCluster().setContactPoints(cassandra.getHost());
         ks.getCluster().setPort(cassandra.getMappedPort(9042));
         ks.getCluster().setUsername(cassandra.getUsername());
         ks.getCluster().setPassword(cassandra.getPassword());
