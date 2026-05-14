@@ -16,8 +16,8 @@
 package com.contrastsecurity.cassandra.migration.script;
 
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.contrastsecurity.cassandra.migration.utils.StringUtils;
 import com.contrastsecurity.cassandra.migration.utils.scanner.Resource;
 import com.datastax.oss.driver.api.core.CqlSession;
@@ -34,7 +34,7 @@ import java.util.List;
  * Single-line (--) and multi-line (/* * /) comments are stripped and ignored.
  */
 public class CqlScript {
-    private static final Log LOG = LogFactory.getLog(CqlScript.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CqlScript.class);
 
     /**
      * The cql statements contained in this script.
@@ -91,7 +91,7 @@ public class CqlScript {
      */
     public void execute(final CqlSession session) {
         for (String cqlStatement : cqlStatements) {
-            LOG.debug("Executing CQL: " + cqlStatement);
+            LOG.debug("Executing CQL: {}", cqlStatement);
             session.execute(cqlStatement);
         }
     }
@@ -148,7 +148,7 @@ public class CqlScript {
             if (cqlStatementBuilder.isTerminated()) {
                 String cqlStatement = cqlStatementBuilder.getCqlStatement();
                 statements.add(cqlStatement);
-                LOG.debug("Found statement: " + cqlStatement);
+                LOG.debug("Found statement: {}", cqlStatement);
 
                 cqlStatementBuilder = new CqlStatementBuilder();
             } else if (cqlStatementBuilder.canDiscard()) {

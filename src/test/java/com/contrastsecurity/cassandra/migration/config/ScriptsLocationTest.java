@@ -15,9 +15,9 @@
  */
 package com.contrastsecurity.cassandra.migration.config;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test for location.
@@ -26,45 +26,45 @@ public class ScriptsLocationTest {
     @Test
     public void defaultPrefix() {
         ScriptsLocation location = new ScriptsLocation("db/migration");
-        assertEquals("classpath:", location.getPrefix());
-        assertTrue(location.isClassPath());
-        assertEquals("db/migration", location.getPath());
-        assertEquals("classpath:db/migration", location.getDescriptor());
+        assertThat(location.getPrefix()).isEqualTo("classpath:");
+        assertThat(location.isClassPath()).isTrue();
+        assertThat(location.getPath()).isEqualTo("db/migration");
+        assertThat(location.getDescriptor()).isEqualTo("classpath:db/migration");
     }
 
     @Test
     public void classpathPrefix() {
         ScriptsLocation location = new ScriptsLocation("classpath:db/migration");
-        assertEquals("classpath:", location.getPrefix());
-        assertTrue(location.isClassPath());
-        assertEquals("db/migration", location.getPath());
-        assertEquals("classpath:db/migration", location.getDescriptor());
+        assertThat(location.getPrefix()).isEqualTo("classpath:");
+        assertThat(location.isClassPath()).isTrue();
+        assertThat(location.getPath()).isEqualTo("db/migration");
+        assertThat(location.getDescriptor()).isEqualTo("classpath:db/migration");
     }
 
     @Test
     public void filesystemPrefix() {
         ScriptsLocation location = new ScriptsLocation("filesystem:db/migration");
-        assertEquals("filesystem:", location.getPrefix());
-        assertFalse(location.isClassPath());
-        assertEquals("db/migration", location.getPath());
-        assertEquals("filesystem:db/migration", location.getDescriptor());
+        assertThat(location.getPrefix()).isEqualTo("filesystem:");
+        assertThat(location.isClassPath()).isFalse();
+        assertThat(location.getPath()).isEqualTo("db/migration");
+        assertThat(location.getDescriptor()).isEqualTo("filesystem:db/migration");
     }
 
     @Test
     public void filesystemPrefixAbsolutePath() {
         ScriptsLocation location = new ScriptsLocation("filesystem:/db/migration");
-        assertEquals("filesystem:", location.getPrefix());
-        assertFalse(location.isClassPath());
-        assertEquals("/db/migration", location.getPath());
-        assertEquals("filesystem:/db/migration", location.getDescriptor());
+        assertThat(location.getPrefix()).isEqualTo("filesystem:");
+        assertThat(location.isClassPath()).isFalse();
+        assertThat(location.getPath()).isEqualTo("/db/migration");
+        assertThat(location.getDescriptor()).isEqualTo("filesystem:/db/migration");
     }
 
     @Test
     public void filesystemPrefixWithDotsInPath() {
         ScriptsLocation location = new ScriptsLocation("filesystem:util-2.0.4/db/migration");
-        assertEquals("filesystem:", location.getPrefix());
-        assertFalse(location.isClassPath());
-        assertEquals("util-2.0.4/db/migration", location.getPath());
-        assertEquals("filesystem:util-2.0.4/db/migration", location.getDescriptor());
+        assertThat(location.getPrefix()).isEqualTo("filesystem:");
+        assertThat(location.isClassPath()).isFalse();
+        assertThat(location.getPath()).isEqualTo("util-2.0.4/db/migration");
+        assertThat(location.getDescriptor()).isEqualTo("filesystem:util-2.0.4/db/migration");
     }
 }

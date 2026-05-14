@@ -19,13 +19,13 @@ import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.utils.StringUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,9 +38,9 @@ public class MigrationInfoDumperTest {
         String table = MigrationInfoDumper.dumpToAsciiTable(new MigrationInfo[0]);
         String[] lines = StringUtils.tokenizeToStringArray(table, "\n");
 
-        assertEquals(5, lines.length);
+        assertThat(lines).hasSize(5);
         for (String line : lines) {
-            assertEquals(lines[0].length(), line.length());
+            assertThat(line).hasSameSizeAs(lines[0]);
         }
     }
 
@@ -55,9 +55,9 @@ public class MigrationInfoDumperTest {
         String table = MigrationInfoDumper.dumpToAsciiTable(migrationInfoService.all());
         String[] lines = StringUtils.tokenizeToStringArray(table, "\n");
 
-        assertEquals(6, lines.length);
+        assertThat(lines).hasSize(6);
         for (String line : lines) {
-            assertEquals(lines[0].length(), line.length());
+            assertThat(line).hasSameSizeAs(lines[0]);
         }
     }
 

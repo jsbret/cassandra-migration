@@ -7,24 +7,25 @@ public final class ScriptsLocation implements Comparable<ScriptsLocation> {
     private static final String CLASSPATH_PREFIX = "classpath:";
     public static final String FILESYSTEM_PREFIX = "filesystem:";
 
-    private String prefix; //classpath or filesystem
-    private String path;
+    private final String prefix; //classpath or filesystem
+    private final String path;
 
     public ScriptsLocation(String descriptor) {
         String normalizedDescriptor = descriptor.trim().replace("\\", "/");
 
+        String tempPath;
         if (normalizedDescriptor.contains(":")) {
             prefix = normalizedDescriptor.substring(0, normalizedDescriptor.indexOf(":") + 1);
-            path = normalizedDescriptor.substring(normalizedDescriptor.indexOf(":") + 1);
+            tempPath = normalizedDescriptor.substring(normalizedDescriptor.indexOf(":") + 1);
         } else {
             prefix = CLASSPATH_PREFIX;
-            path = normalizedDescriptor;
+            tempPath = normalizedDescriptor;
         }
 
         if (isClassPath()) {
-            path = path.replace(".", "/");
-            if (path.startsWith("/")) {
-                path = path.substring(1);
+            tempPath = tempPath.replace(".", "/");
+            if (tempPath.startsWith("/")) {
+                tempPath = tempPath.substring(1);
             }
         } else {
             if (!isFileSystem()) {
@@ -34,9 +35,10 @@ public final class ScriptsLocation implements Comparable<ScriptsLocation> {
             }
         }
 
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
+        if (tempPath.endsWith("/")) {
+            tempPath = tempPath.substring(0, tempPath.length() - 1);
         }
+        path = tempPath;
     }
 
     public boolean isClassPath() {
@@ -63,7 +65,6 @@ public final class ScriptsLocation implements Comparable<ScriptsLocation> {
         return prefix + path;
     }
 
-    @SuppressWarnings("NullableProblems")
     public int compareTo(ScriptsLocation o) {
         return getDescriptor().compareTo(o.getDescriptor());
     }

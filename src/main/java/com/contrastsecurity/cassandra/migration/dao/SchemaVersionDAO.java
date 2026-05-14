@@ -4,29 +4,26 @@ import com.contrastsecurity.cassandra.migration.config.Keyspace;
 import com.contrastsecurity.cassandra.migration.config.MigrationType;
 import com.contrastsecurity.cassandra.migration.info.AppliedMigration;
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.contrastsecurity.cassandra.migration.utils.CachePrepareStatement;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.*;
 import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class SchemaVersionDAO {
 
-    private static final Log LOG = LogFactory.getLog(SchemaVersionDAO.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SchemaVersionDAO.class);
     private static final String COUNTS_TABLE_NAME_SUFFIX = "_counts";
 
-    private CqlSession session;
-    private Keyspace keyspace;
-    private String tableName;
-    private CachePrepareStatement cachePs;
-    private ConsistencyLevel consistencyLevel;
+    private final CqlSession session;
+    private final Keyspace keyspace;
+    private final String tableName;
+    private final CachePrepareStatement cachePs;
+    private final ConsistencyLevel consistencyLevel;
 
     public SchemaVersionDAO(CqlSession session, Keyspace keyspace, String tableName) {
         this.session = session;
@@ -88,7 +85,7 @@ public class SchemaVersionDAO {
                 schemaVersionTableExists = true;
             }
         } catch (InvalidQueryException e) {
-            LOG.debug("No schema version table found with a name of " + tableName);
+            LOG.debug("No schema version table found with a name of {}", tableName);
         }
 
         try {
@@ -97,7 +94,7 @@ public class SchemaVersionDAO {
                 schemaVersionCountsTableExists = true;
             }
         } catch (InvalidQueryException e) {
-            LOG.debug("No schema version counts table found with a name of " + tableName + COUNTS_TABLE_NAME_SUFFIX);
+            LOG.debug("No schema version counts table found with a name of {}{}", tableName, COUNTS_TABLE_NAME_SUFFIX);
         }
 
         return schemaVersionTableExists && schemaVersionCountsTableExists;
@@ -129,7 +126,7 @@ public class SchemaVersionDAO {
                 appliedMigration.getExecutionTime(),
                 appliedMigration.isSuccess()
         ).setConsistencyLevel(this.consistencyLevel));
-        LOG.debug("Schema version table " + tableName + " successfully updated to reflect changes");
+        LOG.debug("Schema version table {} successfully updated to reflect changes", tableName);
     }
 
     /**
@@ -157,7 +154,7 @@ public class SchemaVersionDAO {
                     MigrationType.valueOf(row.getString("type")),
                     row.getString("script"),
                     row.isNull("checksum") ? null : row.getInt("checksum"),
-                    row.getInstant("installed_on") != null ? java.util.Date.from(row.getInstant("installed_on")) : null,
+                    row.getInstant("installed_on") != null ? java.util.Date.from(Objects.requireNonNull(row.getInstant("installed_on"))) : null,
                     row.getString("installed_by"),
                     row.getInt("execution_time"),
                     row.getBoolean("success")
@@ -188,16 +185,7 @@ public class SchemaVersionDAO {
         return (row != null) ? (int) row.getLong("count") : 0;
     }
 
-    class MigrationMetaHolder {
-        private int versionRank;
-
-        public MigrationMetaHolder(int versionRank) {
-            this.versionRank = versionRank;
-        }
-
-        public int getVersionRank() {
-            return versionRank;
-        }
+    record MigrationMetaHolder(int versionRank) {
     }
 
     /**
@@ -234,7 +222,7 @@ public class SchemaVersionDAO {
                 for (int z = i; z < migrationVersions.size(); z++) {
                     String migrationVersionStr = migrationVersions.get(z).getVersion();
                     batchStatement = batchStatement.add(preparedStatement.bind(
-                            migrationMetaHolders.get(migrationVersionStr).getVersionRank() + 1,
+                            migrationMetaHolders.get(migrationVersionStr).versionRank() + 1,
                             migrationVersionStr
                     ));
                 }

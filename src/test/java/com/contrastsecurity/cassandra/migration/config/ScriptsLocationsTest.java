@@ -15,13 +15,12 @@
  */
 package com.contrastsecurity.cassandra.migration.config;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Small Test for Locations.
@@ -31,55 +30,55 @@ public class ScriptsLocationsTest {
     public void mergeLocations() {
         ScriptsLocations locations = new ScriptsLocations("db/locations", "db/files", "db/classes");
         List<ScriptsLocation> locationList = locations.getLocations();
-        assertEquals(3, locationList.size());
+        assertThat(locationList).hasSize(3);
         Iterator<ScriptsLocation> iterator = locationList.iterator();
-        assertEquals("db/classes", iterator.next().getPath());
-        assertEquals("db/files", iterator.next().getPath());
-        assertEquals("db/locations", iterator.next().getPath());
+        assertThat(iterator.next().getPath()).isEqualTo("db/classes");
+        assertThat(iterator.next().getPath()).isEqualTo("db/files");
+        assertThat(iterator.next().getPath()).isEqualTo("db/locations");
     }
 
     @Test
     public void mergeLocationsDuplicate() {
         ScriptsLocations locations = new ScriptsLocations("db/locations", "db/migration", "db/migration");
         List<ScriptsLocation> locationList = locations.getLocations();
-        assertEquals(2, locationList.size());
+        assertThat(locationList).hasSize(2);
         Iterator<ScriptsLocation> iterator = locationList.iterator();
-        assertEquals("db/locations", iterator.next().getPath());
-        assertEquals("db/migration", iterator.next().getPath());
+        assertThat(iterator.next().getPath()).isEqualTo("db/locations");
+        assertThat(iterator.next().getPath()).isEqualTo("db/migration");
     }
 
     @Test
     public void mergeLocationsOverlap() {
         ScriptsLocations locations = new ScriptsLocations("db/migration/oracle", "db/migration", "db/migration");
         List<ScriptsLocation> locationList = locations.getLocations();
-        assertEquals(1, locationList.size());
-        assertEquals("db/migration", locationList.get(0).getPath());
+        assertThat(locationList).hasSize(1);
+        assertThat(locationList.get(0).getPath()).isEqualTo("db/migration");
     }
 
     @Test
     public void mergeLocationsSimilarButNoOverlap() {
         ScriptsLocations locations = new ScriptsLocations("db/migration/oracle", "db/migration", "db/migrationtest");
         List<ScriptsLocation> locationList = locations.getLocations();
-        assertEquals(2, locationList.size());
-        assertTrue(locationList.contains(new ScriptsLocation("db/migration")));
-        assertTrue(locationList.contains(new ScriptsLocation("db/migrationtest")));
+        assertThat(locationList).hasSize(2);
+        assertThat(locationList).contains(new ScriptsLocation("db/migration"));
+        assertThat(locationList).contains(new ScriptsLocation("db/migrationtest"));
     }
 
     @Test
     public void mergeLocationsSimilarButNoOverlapCamelCase() {
         ScriptsLocations locations = new ScriptsLocations("/com/xxx/Star/", "/com/xxx/StarTrack/");
         List<ScriptsLocation> locationList = locations.getLocations();
-        assertEquals(2, locationList.size());
-        assertTrue(locationList.contains(new ScriptsLocation("com/xxx/Star")));
-        assertTrue(locationList.contains(new ScriptsLocation("com/xxx/StarTrack")));
+        assertThat(locationList).hasSize(2);
+        assertThat(locationList).contains(new ScriptsLocation("com/xxx/Star"));
+        assertThat(locationList).contains(new ScriptsLocation("com/xxx/StarTrack"));
     }
 
     @Test
     public void mergeLocationsSimilarButNoOverlapHyphen() {
         ScriptsLocations locations = new ScriptsLocations("db/migration/oracle", "db/migration", "db/migration-test");
         List<ScriptsLocation> locationList = locations.getLocations();
-        assertEquals(2, locationList.size());
-        assertTrue(locationList.contains(new ScriptsLocation("db/migration")));
-        assertTrue(locationList.contains(new ScriptsLocation("db/migration-test")));
+        assertThat(locationList).hasSize(2);
+        assertThat(locationList).contains(new ScriptsLocation("db/migration"));
+        assertThat(locationList).contains(new ScriptsLocation("db/migration-test"));
     }
 }

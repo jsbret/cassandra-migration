@@ -3,8 +3,8 @@ package com.contrastsecurity.cassandra.migration.action;
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
 import com.contrastsecurity.cassandra.migration.info.*;
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationExecutor;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.utils.StopWatch;
@@ -12,7 +12,7 @@ import com.contrastsecurity.cassandra.migration.utils.TimeFormat;
 import com.datastax.oss.driver.api.core.CqlSession;
 
 public class Migrate {
-    private static final Log LOG = LogFactory.getLog(Migrate.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Migrate.class);
 
     private final MigrationVersion target;
     private final SchemaVersionDAO schemaVersionDAO;
@@ -47,19 +47,16 @@ public class Migrate {
                 currentSchemaVersion = infoService.current().getVersion();
             }
             if (firstRun) {
-                LOG.info("Current version of keyspace " + schemaVersionDAO.getKeyspace().getName() + ": " + currentSchemaVersion);
+                LOG.info("Current version of keyspace {}: {}", schemaVersionDAO.getKeyspace().getName(), currentSchemaVersion);
             }
 
             MigrationInfo[] future = infoService.future();
             if (future.length > 0) {
                 MigrationInfo[] resolved = infoService.resolved();
                 if (resolved.length == 0) {
-                    LOG.warn("Keyspace " + schemaVersionDAO.getKeyspace().getName() + " has version " + currentSchemaVersion
-                            + ", but no migration could be resolved in the configured locations !");
+                    LOG.warn("Keyspace {} has version {}, but no migration could be resolved in the configured locations !", schemaVersionDAO.getKeyspace().getName(), currentSchemaVersion);
                 } else {
-                    LOG.warn("Keyspace " + schemaVersionDAO.getKeyspace().getName() + " has a version (" + currentSchemaVersion
-                            + ") that is newer than the latest available migration ("
-                            + resolved[resolved.length - 1].getVersion() + ") !");
+                    LOG.warn("Keyspace {} has a version ({}) that is newer than the latest available migration ({}) !", schemaVersionDAO.getKeyspace().getName(), currentSchemaVersion, resolved[resolved.length - 1].getVersion());
                 }
             }
 
@@ -67,7 +64,7 @@ public class Migrate {
             if (failed.length > 0) {
                 if ((failed.length == 1)
                         && (failed[0].getState() == MigrationState.FUTURE_FAILED)) {
-                    LOG.warn("Keyspace " + schemaVersionDAO.getKeyspace().getName() + " contains a failed future migration to version " + failed[0].getVersion() + " !");
+                    LOG.warn("Keyspace {} contains a failed future migration to version {} !", schemaVersionDAO.getKeyspace().getName(), failed[0].getVersion());
                 } else {
                     throw new CassandraMigrationException("Keyspace " + schemaVersionDAO.getKeyspace().getName() + " contains a failed migration to version " + failed[0].getVersion() + " !");
                 }
@@ -98,8 +95,7 @@ public class Migrate {
 
     private MigrationVersion applyMigration(final MigrationInfo migration, boolean isOutOfOrder) {
         MigrationVersion version = migration.getVersion();
-        LOG.info("Migrating keyspace " + schemaVersionDAO.getKeyspace().getName() + " to version " + version + " - " + migration.getDescription() +
-                (isOutOfOrder ? " (out of order)" : ""));
+        LOG.info("Migrating keyspace {} to version {} - {}{}", schemaVersionDAO.getKeyspace().getName(), version, migration.getDescription(), isOutOfOrder ? " (out of order)" : "");
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -111,13 +107,9 @@ public class Migrate {
             } catch (Exception e) {
                 throw new CassandraMigrationException("Unable to apply migration", e);
             }
-            LOG.debug("Successfully completed and committed migration of keyspace " +
-                    schemaVersionDAO.getKeyspace().getName() + " to version " + version);
+            LOG.debug("Successfully completed and committed migration of keyspace {} to version {}", schemaVersionDAO.getKeyspace().getName(), version);
         } catch (CassandraMigrationException e) {
-            String failedMsg = "Migration of keyspace " + schemaVersionDAO.getKeyspace().getName() +
-                    " to version " + version + " failed!";
-
-            LOG.error(failedMsg + " Please restore backups and roll back database and code!");
+            LOG.error("Migration of keyspace {} to version {} failed! Please restore backups and roll back database and code!", schemaVersionDAO.getKeyspace().getName(), version);
 
             stopWatch.stop();
             int executionTime = (int) stopWatch.getTotalTimeMillis();
@@ -145,14 +137,14 @@ public class Migrate {
      */
     private void logSummary(int migrationSuccessCount, long executionTime) {
         if (migrationSuccessCount == 0) {
-            LOG.info("Keyspace " + schemaVersionDAO.getKeyspace().getName() + " is up to date. No migration necessary.");
+            LOG.info("Keyspace {} is up to date. No migration necessary.", schemaVersionDAO.getKeyspace().getName());
             return;
         }
 
         if (migrationSuccessCount == 1) {
-            LOG.info("Successfully applied 1 migration to keyspace " + schemaVersionDAO.getKeyspace().getName() + " (execution time " + TimeFormat.format(executionTime) + ").");
+            LOG.info("Successfully applied 1 migration to keyspace {} (execution time {}).", schemaVersionDAO.getKeyspace().getName(), TimeFormat.format(executionTime));
         } else {
-            LOG.info("Successfully applied " + migrationSuccessCount + " migrations to keyspace " + schemaVersionDAO.getKeyspace().getName() + " (execution time " + TimeFormat.format(executionTime) + ").");
+            LOG.info("Successfully applied {} migrations to keyspace {} (execution time {}).", migrationSuccessCount, schemaVersionDAO.getKeyspace().getName(), TimeFormat.format(executionTime));
         }
     }
 }

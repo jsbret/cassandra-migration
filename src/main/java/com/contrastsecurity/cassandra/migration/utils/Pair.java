@@ -22,12 +22,17 @@ public class Pair<L, R> {
     /**
      * The left side of the pair.
      */
-    private L left;
+    private final L left;
 
     /**
      * The right side of the pair.
      */
-    private R right;
+    private final R right;
+
+    public Pair(L left, R right) {
+        this.left = left;
+        this.right = right;
+    }
 
     /**
      * Creates a new pair of these values.
@@ -37,10 +42,7 @@ public class Pair<L, R> {
      * @return The pair.
      */
     public static <L, R> Pair<L, R> of(L left, R right) {
-        Pair<L, R> pair = new Pair<L, R>();
-        pair.left = left;
-        pair.right = right;
-        return pair;
+        return new Pair<L, R>(left, right);
     }
 
     /**

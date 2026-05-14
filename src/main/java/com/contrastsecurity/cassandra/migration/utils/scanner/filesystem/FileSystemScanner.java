@@ -16,8 +16,8 @@
 package com.contrastsecurity.cassandra.migration.utils.scanner.filesystem;
 
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.contrastsecurity.cassandra.migration.utils.scanner.Resource;
 
 import java.io.File;
@@ -29,7 +29,7 @@ import java.util.TreeSet;
  * FileSystem scanner.
  */
 public class FileSystemScanner {
-    private static final Log LOG = LogFactory.getLog(FileSystemScanner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileSystemScanner.class);
 
     /**
      * Scans the FileSystem for resources under the specified location, starting with the specified prefix and ending with
@@ -42,7 +42,7 @@ public class FileSystemScanner {
      * @throws IOException when the location could not be scanned.
      */
     public Resource[] scanForResources(String path, String prefix, String suffix) throws IOException {
-        LOG.debug("Scanning for filesystem resources at '" + path + "' (Prefix: '" + prefix + "', Suffix: '" + suffix + "')");
+        LOG.debug("Scanning for filesystem resources at '{}' (Prefix: '{}', Suffix: '{}')", path, prefix, suffix);
 
         if (!new File(path).isDirectory()) {
             throw new CassandraMigrationException("Invalid filesystem path: " + path);
@@ -53,7 +53,7 @@ public class FileSystemScanner {
         Set<String> resourceNames = findResourceNames(path, prefix, suffix);
         for (String resourceName : resourceNames) {
             resources.add(new FileSystemResource(resourceName));
-            LOG.debug("Found filesystem resource: " + resourceName);
+            LOG.debug("Found filesystem resource: {}", resourceName);
         }
 
         return resources.toArray(new Resource[resources.size()]);
@@ -84,7 +84,7 @@ public class FileSystemScanner {
      */
     @SuppressWarnings("ConstantConditions")
     private Set<String> findResourceNamesFromFileSystem(String scanRootLocation, File folder) throws IOException {
-        LOG.debug("Scanning for resources in path: " + folder.getPath() + " (" + scanRootLocation + ")");
+        LOG.debug("Scanning for resources in path: {} ({})", folder.getPath(), scanRootLocation);
 
         Set<String> resourceNames = new TreeSet<String>();
 
@@ -118,7 +118,7 @@ public class FileSystemScanner {
                     && (fileName.length() > (prefix + suffix).length())) {
                 filteredResourceNames.add(resourceName);
             } else {
-                LOG.debug("Filtering out resource: " + resourceName + " (filename: " + fileName + ")");
+                LOG.debug("Filtering out resource: {} (filename: {})", resourceName, fileName);
             }
         }
         return filteredResourceNames;

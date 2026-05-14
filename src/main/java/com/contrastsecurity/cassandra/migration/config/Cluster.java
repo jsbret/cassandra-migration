@@ -9,8 +9,8 @@ public class Cluster {
         USERNAME(PROPERTY_PREFIX + "username", "Username for password authenticator"),
         PASSWORD(PROPERTY_PREFIX + "password", "Password for password authenticator");
 
-        private String name;
-        private String description;
+        private final String name;
+        private final String description;
 
         ClusterProperty(String name, String description) {
             this.name = name;
@@ -32,29 +32,29 @@ public class Cluster {
     private String password;
 
     public Cluster() {
-        String contactpointsP = System.getProperty(ClusterProperty.CONTACTPOINTS.getName());
-        if (null != contactpointsP && contactpointsP.trim().length() != 0)
-            this.contactpoints = contactpointsP.replaceAll("\\s+", "").split("[,]");
+        String contactPoints = System.getProperty(ClusterProperty.CONTACTPOINTS.getName());
+        if (null != contactPoints && !contactPoints.trim().isEmpty())
+            this.contactpoints = contactPoints.replaceAll("\\s+", "").split("[,]");
 
-        String portP = System.getProperty(ClusterProperty.PORT.getName());
-        if (null != portP && portP.trim().length() != 0)
-            this.port = Integer.parseInt(portP);
+        String port = System.getProperty(ClusterProperty.PORT.getName());
+        if (null != port && !port.trim().isEmpty())
+            this.port = Integer.parseInt(port);
 
-        String usernameP = System.getProperty(ClusterProperty.USERNAME.getName());
-        if (null != usernameP && usernameP.trim().length() != 0)
-            this.username = usernameP;
+        String username = System.getProperty(ClusterProperty.USERNAME.getName());
+        if (null != username && !username.trim().isEmpty())
+            this.username = username;
 
-        String passwordP = System.getProperty(ClusterProperty.PASSWORD.getName());
-        if (null != passwordP && passwordP.trim().length() != 0)
-            this.password = passwordP;
+        String password = System.getProperty(ClusterProperty.PASSWORD.getName());
+        if (null != password && !password.trim().isEmpty())
+            this.password = password;
     }
 
-    public String[] getContactpoints() {
+    public String[] getContactPoints() {
         return contactpoints;
     }
 
-    public void setContactpoints(String... contactpoints) {
-        this.contactpoints = contactpoints;
+    public void setContactPoints(String... contactPoints) {
+        this.contactpoints = contactPoints;
     }
 
     public int getPort() {

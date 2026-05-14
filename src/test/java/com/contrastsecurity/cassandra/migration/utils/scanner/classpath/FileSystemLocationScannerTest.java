@@ -16,13 +16,13 @@
 package com.contrastsecurity.cassandra.migration.utils.scanner.classpath;
 
 import com.contrastsecurity.cassandra.migration.utils.UrlUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URL;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test for FileSystemClassPathLocationScanner.
@@ -36,11 +36,12 @@ public class FileSystemLocationScannerTest {
         Set<String> resourceNames =
                 new FileSystemClassPathLocationScanner().findResourceNamesFromFileSystem(path, "cql", new File(path, "cql"));
 
-        assertEquals(3, resourceNames.size());
-        String[] names = resourceNames.toArray(new String[3]);
-        assertEquals("cql/V1_2__Populate_table.cql", names[0]);
-        assertEquals("cql/V1__First.cql", names[1]);
-        assertEquals("cql/V2_0__Add_contents_table.cql", names[2]);
+        assertThat(resourceNames).hasSize(3);
+        assertThat(resourceNames).containsExactly(
+                "cql/V1_2__Populate_table.cql",
+                "cql/V1__First.cql",
+                "cql/V2_0__Add_contents_table.cql"
+        );
     }
 
     @Test
@@ -50,6 +51,6 @@ public class FileSystemLocationScannerTest {
         Set<String> resourceNames =
                 new FileSystemClassPathLocationScanner().findResourceNames("cql", url);
 
-        assertEquals(0, resourceNames.size());
+        assertThat(resourceNames).isEmpty();
     }
 }

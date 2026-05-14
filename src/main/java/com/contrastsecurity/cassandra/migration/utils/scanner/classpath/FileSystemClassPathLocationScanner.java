@@ -15,8 +15,8 @@
  */
 package com.contrastsecurity.cassandra.migration.utils.scanner.classpath;
 
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.contrastsecurity.cassandra.migration.utils.UrlUtils;
 
 import java.io.File;
@@ -29,13 +29,13 @@ import java.util.TreeSet;
  * ClassPathLocationScanner for the file system.
  */
 public class FileSystemClassPathLocationScanner implements ClassPathLocationScanner {
-    private static final Log LOG = LogFactory.getLog(FileSystemClassPathLocationScanner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileSystemClassPathLocationScanner.class);
 
     public Set<String> findResourceNames(String location, URL locationUrl) throws IOException {
         String filePath = UrlUtils.toFilePath(locationUrl);
         File folder = new File(filePath);
         if (!folder.isDirectory()) {
-            LOG.debug("Skipping path as it is not a directory: " + filePath);
+            LOG.debug("Skipping path as it is not a directory: {}", filePath);
             return new TreeSet<String>();
         }
 
@@ -43,7 +43,7 @@ public class FileSystemClassPathLocationScanner implements ClassPathLocationScan
         if (!classPathRootOnDisk.endsWith(File.separator)) {
             classPathRootOnDisk = classPathRootOnDisk + File.separator;
         }
-        LOG.debug("Scanning starting at classpath root in filesystem: " + classPathRootOnDisk);
+        LOG.debug("Scanning starting at classpath root in filesystem: {}", classPathRootOnDisk);
         return findResourceNamesFromFileSystem(classPathRootOnDisk, location, folder);
     }
 
@@ -59,7 +59,7 @@ public class FileSystemClassPathLocationScanner implements ClassPathLocationScan
     /*private -> for testing*/
     @SuppressWarnings("ConstantConditions")
     Set<String> findResourceNamesFromFileSystem(String classPathRootOnDisk, String scanRootLocation, File folder) throws IOException {
-        LOG.debug("Scanning for resources in path: " + folder.getPath() + " (" + scanRootLocation + ")");
+        LOG.debug("Scanning for resources in path: {} ({})", folder.getPath(), scanRootLocation);
 
         Set<String> resourceNames = new TreeSet<String>();
 

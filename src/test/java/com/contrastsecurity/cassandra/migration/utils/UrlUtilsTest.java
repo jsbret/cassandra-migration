@@ -15,17 +15,17 @@
  */
 package com.contrastsecurity.cassandra.migration.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.MalformedURLException;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class UrlUtilsTest {
     @Test
     public void toFilePath() throws MalformedURLException {
         File file = new File("/test dir/a+b");
-        assertEquals(file.getAbsolutePath(), UrlUtils.toFilePath(file.toURI().toURL()));
+        assertThat(UrlUtils.toFilePath(file.toURI().toURL())).isEqualTo(file.getAbsolutePath());
     }
 }

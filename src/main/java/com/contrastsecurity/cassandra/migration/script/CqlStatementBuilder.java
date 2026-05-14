@@ -27,7 +27,7 @@ public class CqlStatementBuilder {
     /**
      * The current statement, as it is being built.
      */
-    private StringBuilder statement = new StringBuilder();
+    private final StringBuilder statement = new StringBuilder();
 
     /**
      * The initial line number of this statement.

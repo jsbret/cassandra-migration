@@ -16,10 +16,9 @@
 package com.contrastsecurity.cassandra.migration.utils.scanner.classpath;
 
 import com.contrastsecurity.cassandra.migration.CassandraMigrationException;
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.contrastsecurity.cassandra.migration.utils.ClassUtils;
-import com.contrastsecurity.cassandra.migration.utils.FeatureDetector;
 import com.contrastsecurity.cassandra.migration.utils.UrlUtils;
 import com.contrastsecurity.cassandra.migration.utils.scanner.Resource;
 
@@ -30,7 +29,7 @@ import java.net.URLDecoder;
 import java.util.*;
 
 public class ClassPathScanner {
-    private static final Log LOG = LogFactory.getLog(ClassPathScanner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ClassPathScanner.class);
 
     /**
      * The ClassLoader for loading migrations on the classpath.
@@ -57,14 +56,14 @@ public class ClassPathScanner {
      * @throws IOException when the location could not be scanned.
      */
     public Resource[] scanForResources(String path, String prefix, String suffix) throws IOException {
-        LOG.debug("Scanning for classpath resources at '" + path + "' (Prefix: '" + prefix + "', Suffix: '" + suffix + "')");
+        LOG.debug("Scanning for classpath resources at '{}' (Prefix: '{}', Suffix: '{}')", path, prefix, suffix);
 
         Set<Resource> resources = new TreeSet<Resource>();
 
         Set<String> resourceNames = findResourceNames(path, prefix, suffix);
         for (String resourceName : resourceNames) {
             resources.add(new ClassPathResource(resourceName, classLoader));
-            LOG.debug("Found resource: " + resourceName);
+            LOG.debug("Found resource: {}", resourceName);
         }
 
         return resources.toArray(new Resource[resources.size()]);
@@ -81,7 +80,7 @@ public class ClassPathScanner {
      * @throws Exception when the location could not be scanned.
      */
     public Class<?>[] scanForClasses(String location, Class<?> implementedInterface) throws Exception {
-        LOG.debug("Scanning for classes at '" + location + "' (Implementing: '" + implementedInterface.getName() + "')");
+        LOG.debug("Scanning for classes at '{}' (Implementing: '{}')", location, implementedInterface.getName());
 
         List<Class<?>> classes = new ArrayList<Class<?>>();
 
@@ -91,7 +90,7 @@ public class ClassPathScanner {
             Class<?> clazz = classLoader.loadClass(className);
 
             if (Modifier.isAbstract(clazz.getModifiers()) || clazz.isEnum() || clazz.isAnonymousClass()) {
-                LOG.debug("Skipping non-instantiable class: " + className);
+                LOG.debug("Skipping non-instantiable class: {}", className);
                 continue;
             }
 
@@ -106,7 +105,7 @@ public class ClassPathScanner {
             }
 
             classes.add(clazz);
-            LOG.debug("Found class: " + className);
+            LOG.debug("Found class: {}", className);
         }
 
         return classes.toArray(new Class<?>[classes.size()]);
@@ -138,7 +137,7 @@ public class ClassPathScanner {
 
         List<URL> locationsUrls = getLocationUrlsForPath(path);
         for (URL locationUrl : locationsUrls) {
-            LOG.debug("Scanning URL: " + locationUrl.toExternalForm());
+            LOG.debug("Scanning URL: {}", locationUrl.toExternalForm());
 
             UrlResolver urlResolver = createUrlResolver(locationUrl.getProtocol());
             URL resolvedUrl = urlResolver.toStandardJavaUrl(locationUrl);
@@ -147,7 +146,7 @@ public class ClassPathScanner {
             ClassPathLocationScanner classPathLocationScanner = createLocationScanner(protocol);
             if (classPathLocationScanner == null) {
                 String scanRoot = UrlUtils.toFilePath(resolvedUrl);
-                LOG.warn("Unable to scan location: " + scanRoot + " (unsupported protocol: " + protocol + ")");
+                LOG.warn("Unable to scan location: {} (unsupported protocol: {})", scanRoot, protocol);
             } else {
                 resourceNames.addAll(classPathLocationScanner.findResourceNames(path, resolvedUrl));
             }
@@ -219,8 +218,6 @@ public class ClassPathScanner {
             return new JarFileClassPathLocationScanner();
         }
 
-        FeatureDetector featureDetector = new FeatureDetector(classLoader);
-
         return null;
     }
 
@@ -240,7 +237,7 @@ public class ClassPathScanner {
                     && (fileName.length() > (prefix + suffix).length())) {
                 filteredResourceNames.add(resourceName);
             } else {
-                LOG.debug("Filtering out resource: " + resourceName + " (filename: " + fileName + ")");
+                LOG.debug("Filtering out resource: {} (filename: {})", resourceName, fileName);
             }
         }
         return filteredResourceNames;

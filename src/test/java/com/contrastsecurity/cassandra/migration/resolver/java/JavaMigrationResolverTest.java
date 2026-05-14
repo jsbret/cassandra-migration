@@ -20,22 +20,22 @@ import com.contrastsecurity.cassandra.migration.config.ScriptsLocation;
 import com.contrastsecurity.cassandra.migration.info.ResolvedMigration;
 import com.contrastsecurity.cassandra.migration.resolver.java.dummy.V2__InterfaceBasedMigration;
 import com.contrastsecurity.cassandra.migration.resolver.java.dummy.Version3dot5;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test for JavaMigrationResolver.
  */
 public class JavaMigrationResolverTest {
-    @Test(expected = CassandraMigrationException.class)
+    @Test
     public void broken() {
-        new JavaMigrationResolver(Thread.currentThread().getContextClassLoader(), new ScriptsLocation("com/contrastsecurity/cassandra/migration/resolver/java/error")).resolveMigrations();
+        assertThrows(CassandraMigrationException.class, () -> new JavaMigrationResolver(Thread.currentThread().getContextClassLoader(), new ScriptsLocation("com/contrastsecurity/cassandra/migration/resolver/java/error")).resolveMigrations());
     }
 
     @Test
@@ -44,39 +44,39 @@ public class JavaMigrationResolverTest {
                 new JavaMigrationResolver(Thread.currentThread().getContextClassLoader(), new ScriptsLocation("com/contrastsecurity/cassandra/migration/resolver/java/dummy"));
         Collection<ResolvedMigration> migrations = jdbcMigrationResolver.resolveMigrations();
 
-        assertEquals(3, migrations.size());
+        assertThat(migrations).hasSize(3);
 
         List<ResolvedMigration> migrationList = new ArrayList<ResolvedMigration>(migrations);
 
         ResolvedMigration migrationInfo = migrationList.get(0);
-        assertEquals("2", migrationInfo.getVersion().toString());
-        assertEquals("InterfaceBasedMigration", migrationInfo.getDescription());
-        assertNull(migrationInfo.getChecksum());
+        assertThat(migrationInfo.getVersion().toString()).isEqualTo("2");
+        assertThat(migrationInfo.getDescription()).isEqualTo("InterfaceBasedMigration");
+        assertThat(migrationInfo.getChecksum()).isNull();
 
         ResolvedMigration migrationInfo1 = migrationList.get(1);
-        assertEquals("3.5", migrationInfo1.getVersion().toString());
-        assertEquals("Three Dot Five", migrationInfo1.getDescription());
-        assertEquals(35, migrationInfo1.getChecksum().intValue());
+        assertThat(migrationInfo1.getVersion().toString()).isEqualTo("3.5");
+        assertThat(migrationInfo1.getDescription()).isEqualTo("Three Dot Five");
+        assertThat(migrationInfo1.getChecksum().intValue()).isEqualTo(35);
 
         ResolvedMigration migrationInfo2 = migrationList.get(2);
-        assertEquals("4", migrationInfo2.getVersion().toString());
+        assertThat(migrationInfo2.getVersion().toString()).isEqualTo("4");
     }
 
     @Test
     public void conventionOverConfiguration() {
         JavaMigrationResolver jdbcMigrationResolver = new JavaMigrationResolver(Thread.currentThread().getContextClassLoader(), null);
         ResolvedMigration migrationInfo = jdbcMigrationResolver.extractMigrationInfo(new V2__InterfaceBasedMigration());
-        assertEquals("2", migrationInfo.getVersion().toString());
-        assertEquals("InterfaceBasedMigration", migrationInfo.getDescription());
-        assertNull(migrationInfo.getChecksum());
+        assertThat(migrationInfo.getVersion().toString()).isEqualTo("2");
+        assertThat(migrationInfo.getDescription()).isEqualTo("InterfaceBasedMigration");
+        assertThat(migrationInfo.getChecksum()).isNull();
     }
 
     @Test
     public void explicitInfo() {
         JavaMigrationResolver jdbcMigrationResolver = new JavaMigrationResolver(Thread.currentThread().getContextClassLoader(), null);
         ResolvedMigration migrationInfo = jdbcMigrationResolver.extractMigrationInfo(new Version3dot5());
-        assertEquals("3.5", migrationInfo.getVersion().toString());
-        assertEquals("Three Dot Five", migrationInfo.getDescription());
-        assertEquals(35, migrationInfo.getChecksum().intValue());
+        assertThat(migrationInfo.getVersion().toString()).isEqualTo("3.5");
+        assertThat(migrationInfo.getDescription()).isEqualTo("Three Dot Five");
+        assertThat(migrationInfo.getChecksum().intValue()).isEqualTo(35);
     }
 }

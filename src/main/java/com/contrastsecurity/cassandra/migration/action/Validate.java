@@ -3,8 +3,8 @@ package com.contrastsecurity.cassandra.migration.action;
 import com.contrastsecurity.cassandra.migration.dao.SchemaVersionDAO;
 import com.contrastsecurity.cassandra.migration.info.MigrationInfoService;
 import com.contrastsecurity.cassandra.migration.info.MigrationVersion;
-import com.contrastsecurity.cassandra.migration.logging.Log;
-import com.contrastsecurity.cassandra.migration.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.contrastsecurity.cassandra.migration.resolver.MigrationResolver;
 import com.contrastsecurity.cassandra.migration.utils.StopWatch;
 import com.contrastsecurity.cassandra.migration.utils.TimeFormat;
@@ -17,23 +17,23 @@ public class Validate {
 	/**
 	 * logging support
 	 */
-	private static final Log LOG = LogFactory.getLog(Validate.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Validate.class);
 
-	private SchemaVersionDAO schemaVersionDao;
+	private final SchemaVersionDAO schemaVersionDao;
 
 	/**
 	 * migration resolver
 	 */
-	private MigrationResolver migrationResolver;
+	private final MigrationResolver migrationResolver;
 	
 	/**
 	 * migration target
 	 */
-	private MigrationVersion migrationTarget;
+	private final MigrationVersion migrationTarget;
 
-	private boolean outOfOrder;
+	private final boolean outOfOrder;
 	
-	private boolean pendingOrFuture;
+	private final boolean pendingOrFuture;
 	
 	public Validate(MigrationResolver migrationResolver, SchemaVersionDAO schemaVersionDao, MigrationVersion migrationTarget, boolean outOfOrder, boolean pendingOrFuture) {
 		this.schemaVersionDao = schemaVersionDao;
@@ -54,7 +54,7 @@ public class Validate {
 		
 		stopWatch.stop();
 		
-		LOG.info(String.format("Validated %d migrations (execution time %s)", count, TimeFormat.format(stopWatch.getTotalTimeMillis())));
+		LOG.info("Validated {} migrations (execution time {})", count, TimeFormat.format(stopWatch.getTotalTimeMillis()));
 		
 		return validationError;
 	}

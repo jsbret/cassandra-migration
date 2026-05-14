@@ -32,7 +32,7 @@ public class MigrationVersion implements Comparable<MigrationVersion> {
     private List<BigInteger> versionParts;
     private String displayText;
 
-    private static Pattern splitPattern = Pattern.compile("\\.(?=\\d)");
+    private static final Pattern splitPattern = Pattern.compile("\\.(?=\\d)");
 
     public MigrationVersion(BigInteger version, String displayText) {
         List<BigInteger> tmp = new ArrayList<>();

@@ -1,20 +1,19 @@
 package com.contrastsecurity.cassandra.migration.config;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class KeyspaceTest {
     @Test
     public void shouldDefaultToNoKeyspaceButCanBeOverridden() {
-        assertThat(new Keyspace().getName(), is(nullValue()));
+        assertThat(new Keyspace().getName()).isNull();
         System.setProperty(Keyspace.KeyspaceProperty.NAME.getName(), "myspace");
-        assertThat(new Keyspace().getName(), is("myspace"));
+        assertThat(new Keyspace().getName()).isEqualTo("myspace");
     }
 
     @Test
     public void shouldHaveDefaultClusterObject() {
-        assertThat(new Keyspace().getCluster(), is(notNullValue()));
+        assertThat(new Keyspace().getCluster()).isNotNull();
     }
 }
